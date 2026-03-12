@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: potago-backend
+    env: docker # Using Docker for deployment
+    plan: free # Use free tier
+    region: singapore # Choose closest region
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_PORT
+        value: 17919
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false # You will paste the whole JSON content here
