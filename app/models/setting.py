@@ -11,6 +11,7 @@ class Setting:
         return Setting(
             id=data.get('Id'),
             notification=bool(data.get('Notification')),
+            experience_goal = data.get('ExperienceGoal'),
             language=data.get('Language'),
             user_id=data.get('UserId')
         )
@@ -18,5 +19,6 @@ class Setting:
     def to_dict(self):
         return {
             'id': self.id, 'notification': self.notification,
-            'language': self.language, 'user_id': self.user_id
+            'language': self.language, 'user_id': self.user_id,
+            'experience_goal': self.experience_goal
         }

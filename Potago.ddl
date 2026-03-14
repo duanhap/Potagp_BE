@@ -1,3 +1,6 @@
+CREATE DATABASE potago
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
 CREATE TABLE `User` (
   Id               int(10) NOT NULL AUTO_INCREMENT, 
   Uid              varchar(255) NOT NULL, 
@@ -101,6 +104,7 @@ CREATE TABLE Setting (
   Id           int(10) NOT NULL AUTO_INCREMENT, 
   Notification bit(1) NOT NULL, 
   Language     varchar(255), 
+  ExperienceGoal int(10) NOT NULL,
   UserId       int(10) NOT NULL, 
   PRIMARY KEY (Id));
 CREATE TABLE Item (
