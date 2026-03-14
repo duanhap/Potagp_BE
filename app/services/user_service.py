@@ -33,8 +33,13 @@ class UserService:
         if not update_data:
             return None, 'No valid fields to update'
 
+        existing_user = self.user_repository.get_by_uid(uid)
+        if not existing_user:
+            return None, 'User not found'
+
         updated = self.user_repository.update_profile(uid, update_data)
         if not updated:
-            return None, 'User not found'
+            # No changed fields in DB (same payload), still treat as success.
+            return existing_user, None
 
         return self.user_repository.get_by_uid(uid), None
