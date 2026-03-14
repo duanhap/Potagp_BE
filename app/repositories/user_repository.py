@@ -37,3 +37,32 @@ class UserRepository:
             connection.commit()
         finally:
             connection.close()
+
+    def update_profile(self, uid, update_data):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                field_map = {
+                    'name': 'Name',
+                    'avatar': 'Avatar',
+                    'token_fcm': 'TokenFCM'
+                }
+
+                set_parts = []
+                values = []
+                for key, value in update_data.items():
+                    column_name = field_map.get(key)
+                    if column_name:
+                        set_parts.append(f"`{column_name}` = %s")
+                        values.append(value)
+
+                if not set_parts:
+                    return False
+
+                sql = f"UPDATE `User` SET {', '.join(set_parts)} WHERE Uid = %s"
+                values.append(uid)
+                cursor.execute(sql, tuple(values))
+            connection.commit()
+            return cursor.rowcount > 0
+        finally:
+            connection.close()

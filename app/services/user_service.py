@@ -17,3 +17,24 @@ class UserService:
         
         user_id = self.user_repository.create(uid, email, name)
         return self.user_repository.get_by_uid(uid), True
+
+    def update_user_profile(self, uid, data):
+        allowed_profile_fields = {'name', 'avatar', 'token_fcm'}
+
+        if not isinstance(data, dict):
+            return None, 'Invalid request body'
+
+        update_data = {
+            key: value
+            for key, value in data.items()
+            if key in allowed_profile_fields and value is not None
+        }
+
+        if not update_data:
+            return None, 'No valid fields to update'
+
+        updated = self.user_repository.update_profile(uid, update_data)
+        if not updated:
+            return None, 'User not found'
+
+        return self.user_repository.get_by_uid(uid), None

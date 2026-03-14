@@ -87,3 +87,56 @@ def get_profile():
         return jsonify({'success': False,'message': 'User not found'}), 404
         
     return jsonify({'success': True,'message': 'User profile retrieved successfully', 'data': user.to_dict()}), 200
+
+@user_bp.route('/profile', methods=['PUT'])
+@token_required
+def update_profile():
+    """
+    Update user profile information
+    ---
+    tags:
+      - User
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "John Doe"
+            avatar:
+              type: string
+              example: "https://example.com/avatar.jpg"
+            token_fcm:
+              type: string
+              example: "fcm_token_value"
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Firebase ID Token (Bearer <token>)
+    responses:
+      200:
+        description: User profile updated successfully
+      400:
+        description: Invalid request body or no valid fields to update
+      404:
+        description: User not found
+      401:
+        description: Unauthorized (Invalid or missing token)
+    """
+    uid = request.user['uid']
+    data = request.get_json(silent=True) or {}
+
+    user, error = user_service.update_user_profile(uid, data)
+    if error:
+        status_code = 404 if error == 'User not found' else 400
+        return jsonify({'success': False, 'message': error}), status_code
+
+    return jsonify({
+        'success': True,
+        'message': 'User profile updated successfully',
+        'data': user.to_dict()
+    }), 200
