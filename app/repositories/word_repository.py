@@ -82,6 +82,39 @@ class WordRepository:
         finally:
             connection.close()
 
+    def create_many(self, word_set_id, words):
+        """Create multiple words for the same word set. words: list of dict with term, definition, description?, status?"""
+        if not words:
+            return []
+
+        connection = get_db_connection()
+        try:
+            flashcard_game_id = self._get_or_create_flashcard_game(connection, word_set_id)
+            match_game_id = self._get_or_create_match_game(connection, word_set_id)
+            now = datetime.now().date()
+
+            created_ids = []
+            with connection.cursor() as cursor:
+                sql = """
+                    INSERT INTO Word (Term, Definition, Description, CreatedAt, Status, WordSetId, FlashcardGameId, MatchGameId)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                for w in words:
+                    term = w.get('term')
+                    definition = w.get('definition')
+                    if not term or not definition:
+                        continue
+                    cursor.execute(sql, (
+                        term, definition, w.get('description'),
+                        now, w.get('status', 'new'),
+                        word_set_id, flashcard_game_id, match_game_id
+                    ))
+                    created_ids.append(cursor.lastrowid)
+            connection.commit()
+            return created_ids
+        finally:
+            connection.close()
+
     def update(self, word_id, term, definition, description=None, status=None):
         connection = get_db_connection()
         try:

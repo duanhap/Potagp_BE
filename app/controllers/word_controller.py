@@ -56,6 +56,96 @@ def get_words():
     }), 200
 
 
+@word_bp.route('/bulk', methods=['POST'])
+@token_required
+def create_words_bulk():
+    """
+    Create multiple words in a word set at once
+    ---
+    tags:
+      - Word
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Firebase ID Token (Bearer <token>)
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - word_set_id
+            - words
+          properties:
+            word_set_id:
+              type: integer
+              example: 1
+            words:
+              type: array
+              items:
+                type: object
+                required:
+                  - term
+                  - definition
+                properties:
+                  term:
+                    type: string
+                    example: "Hello"
+                  definition:
+                    type: string
+                    example: "Xin chào"
+                  description:
+                    type: string
+                  status:
+                    type: string
+                    default: "new"
+    responses:
+      201:
+        description: Words created successfully
+      400:
+        description: Missing required fields
+      403:
+        description: Forbidden
+      404:
+        description: User or word set not found
+      401:
+        description: Unauthorized
+    """
+    uid = request.user['uid']
+    data = request.get_json()
+
+    word_set_id = data.get('word_set_id')
+    words = data.get('words')
+
+    if not word_set_id:
+        return jsonify({'success': False, 'message': 'word_set_id is required'}), 400
+    if not words or not isinstance(words, list):
+        return jsonify({'success': False, 'message': 'words must be a non-empty array'}), 400
+
+    result, error = word_service.create_words(uid, word_set_id, words)
+
+    if error == 'user_not_found':
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+    if error == 'not_found':
+        return jsonify({'success': False, 'message': 'Word set not found'}), 404
+    if error == 'forbidden':
+        return jsonify({'success': False, 'message': 'You do not have permission to add words to this word set'}), 403
+
+    if not result:
+        return jsonify({
+            'success': False,
+            'message': 'No valid words to create (each word needs term and definition)'
+        }), 400
+
+    return jsonify({
+        'success': True,
+        'message': f'{len(result)} word(s) created successfully',
+        'data': [w.to_dict() for w in result]
+    }), 201
+
+
 @word_bp.route('/<int:word_id>', methods=['GET'])
 @token_required
 def get_word(word_id):

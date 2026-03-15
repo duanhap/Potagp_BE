@@ -61,6 +61,20 @@ class WordService:
         word_id = self.word_repository.create(term, definition, word_set_id, description, status)
         return self.word_repository.get_by_id(word_id), None
 
+    def create_words(self, uid, word_set_id, words):
+        """Create multiple words at once. words: list of dict with term, definition, description?, status?"""
+        user, error = self._check_word_set_access(uid, word_set_id)
+        if error:
+            return None, error
+
+        valid_words = [w for w in words if w.get('term') and w.get('definition')]
+        if not valid_words:
+            return [], None
+
+        created_ids = self.word_repository.create_many(word_set_id, valid_words)
+        result = [self.word_repository.get_by_id(wid) for wid in created_ids]
+        return result, None
+
     def update_word(self, uid, word_id, term=None, definition=None, description=None, status=None):
         user = self.user_repository.get_by_uid(uid)
         if not user:
