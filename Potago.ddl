@@ -115,15 +115,17 @@ CREATE TABLE Item (
   UserId          int(10) NOT NULL, 
   PRIMARY KEY (Id));
 CREATE TABLE Video (
-  Id            int(10) NOT NULL AUTO_INCREMENT, 
-  Title         varchar(255) NULL, 
-  Thumbnail     varchar(255) NULL, 
-  SourceUrl     varchar(255) NOT NULL, 
-  LastOpened    timestamp NULL, 
-  TypeVideo     varchar(255), 
-  CreatedAt     date, 
-  UserId        int(10) NULL, 
-  PublicVideoId int(10) NULL,
+  Id                     int(10) NOT NULL AUTO_INCREMENT, 
+  Title                  varchar(255) NULL, 
+  Thumbnail              varchar(255) NULL, 
+  SourceUrl              varchar(255) NOT NULL, 
+  LastOpened             timestamp NULL, 
+  TypeVideo              varchar(255), 
+  CreatedAt              date, 
+  UserId                 int(10) NULL, 
+  PublicVideoId          int(10) NULL,
+  DefinitionLanguageCode varchar(255) NOT NULL, 
+  TermLanguageCode       varchar(255) NOT NULL, 
   PRIMARY KEY (Id));
 CREATE TABLE Subtitle (
   Id            int(10) NOT NULL AUTO_INCREMENT, 
