@@ -41,6 +41,50 @@ def get_word_sets():
     }), 200
 
 
+@word_set_bp.route('/recent', methods=['GET'])
+@token_required
+def get_recent_word_sets():
+    """
+    Get 3 most recently created word sets of the current user
+    ---
+    tags:
+      - WordSet
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Firebase ID Token (Bearer <token>)
+      - name: limit
+        in: query
+        type: integer
+        default: 3
+        description: Number of recent word sets to return (max 10)
+    responses:
+      200:
+        description: Recent word sets retrieved successfully
+      404:
+        description: User not found
+      401:
+        description: Unauthorized
+    """
+    uid = request.user['uid']
+    try:
+        limit = min(max(1, int(request.args.get('limit', 3))), 10)
+    except (ValueError, TypeError):
+        limit = 3
+    word_sets = word_set_service.get_recent_word_sets(uid, limit)
+
+    if word_sets is None:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+
+    return jsonify({
+        'success': True,
+        'message': 'Recent word sets retrieved successfully',
+        'data': [ws.to_dict() for ws in word_sets]
+    }), 200
+
+
 @word_set_bp.route('/<int:word_set_id>', methods=['GET'])
 @token_required
 def get_word_set(word_set_id):

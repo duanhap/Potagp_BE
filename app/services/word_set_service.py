@@ -14,6 +14,12 @@ class WordSetService:
             return None
         return self.word_set_repository.get_all_by_user_id(user.id)
 
+    def get_recent_word_sets(self, uid, limit=3):
+        user = self.user_repository.get_by_uid(uid)
+        if not user:
+            return None
+        return self.word_set_repository.get_recent_by_user_id(user.id, limit)
+
     def get_word_set(self, word_set_id, uid):
         user = self.user_repository.get_by_uid(uid)
         if not user:

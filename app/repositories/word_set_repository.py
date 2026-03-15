@@ -20,8 +20,24 @@ class WordSetRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT * FROM WordSet WHERE UserId = %s ORDER BY UpdatedAt DESC, CreatedAt DESC"
+                sql = "SELECT * FROM WordSet WHERE UserId = %s ORDER BY CreatedAt DESC, UpdatedAt DESC"
                 cursor.execute(sql, (user_id,))
+                results = cursor.fetchall()
+                return [WordSet.from_dict(row) for row in results]
+        finally:
+            connection.close()
+
+    def get_recent_by_user_id(self, user_id, limit=3):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = """
+                    SELECT * FROM WordSet 
+                    WHERE UserId = %s 
+                    ORDER BY LastOpened DESC 
+                    LIMIT %s
+                """
+                cursor.execute(sql, (user_id, limit))
                 results = cursor.fetchall()
                 return [WordSet.from_dict(row) for row in results]
         finally:
@@ -32,11 +48,11 @@ class WordSetRepository:
         try:
             with connection.cursor() as cursor:
                 sql = """
-                    INSERT INTO WordSet (Name, Description, CreatedAt, IsPublic, DefinitionLanguageCode, TermLanguageCode, UpdatedAt, UserId)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO WordSet (Name, Description, CreatedAt, IsPublic, DefinitionLanguageCode, TermLanguageCode, UpdatedAt, LastOpened, UserId)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
-                now = datetime.now().date()
-                cursor.execute(sql, (name, description, now, is_public, def_lang_code, term_lang_code, now, user_id))
+                now = datetime.now()
+                cursor.execute(sql, (name, description, now.date(), is_public, def_lang_code, term_lang_code, now.date(), now, user_id))
             connection.commit()
             return cursor.lastrowid
         finally:
