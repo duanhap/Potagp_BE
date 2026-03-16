@@ -18,30 +18,64 @@ class VideoRepository:
         finally:
             connection.close()
 
-    def get_all_public(self):
-        """Lấy tất cả video chung (UserId IS NULL)."""
+    def get_all_public(self, term_lang_code=None, limit=None, offset=None):
+        """Lấy tất cả video chung (UserId IS NULL) có tùy chọn phân trang và theo term language."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT * FROM Video WHERE UserId IS NULL ORDER BY CreatedAt DESC"
-                )
+                base_query = "FROM Video WHERE UserId IS NULL"
+                params = []
+                
+                if term_lang_code:
+                    base_query += " AND TermLanguageCode = %s"
+                    params.append(term_lang_code)
+                    
+                # Mặc định lấy tổng số dòng thỏa mãn (để phân trang)
+                cursor.execute(f"SELECT COUNT(*) as total {base_query}", tuple(params))
+                count_result = cursor.fetchone()
+                # Kiểm tra dạng trả về là dict (['total']) hay tuple ([0])
+                total_count = count_result['total'] if isinstance(count_result, dict) else count_result[0]
+                
+                query = f"SELECT * {base_query} ORDER BY CreatedAt DESC"
+                if limit is not None and offset is not None:
+                    query += " LIMIT %s OFFSET %s"
+                    params.extend([limit, offset])
+                    
+                cursor.execute(query, tuple(params))
                 results = cursor.fetchall()
-                return [Video.from_dict(row) for row in results]
+                videos = [Video.from_dict(row) for row in results]
+                
+                return videos, total_count
         finally:
             connection.close()
 
-    def get_all_by_user_id(self, user_id):
-        """Lấy tất cả video riêng của 1 user."""
+    def get_all_by_user_id(self, user_id, type_video=None, limit=None, offset=None):
+        """Lấy tất cả video riêng của 1 user có tùy chọn phân trang và type."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT * FROM Video WHERE UserId = %s ORDER BY LastOpened DESC, CreatedAt DESC",
-                    (user_id,)
-                )
+                base_query = "FROM Video WHERE UserId = %s"
+                params = [user_id]
+                
+                if type_video:
+                    base_query += " AND TypeVideo = %s"
+                    params.append(type_video)
+                    
+                # Mặc định lấy tổng số dòng thỏa mãn (để phân trang)
+                cursor.execute(f"SELECT COUNT(*) as total {base_query}", tuple(params))
+                count_result = cursor.fetchone()
+                total_count = count_result['total'] if isinstance(count_result, dict) else count_result[0]
+                
+                query = f"SELECT * {base_query} ORDER BY LastOpened DESC, CreatedAt DESC"
+                if limit is not None and offset is not None:
+                    query += " LIMIT %s OFFSET %s"
+                    params.extend([limit, offset])
+
+                cursor.execute(query, tuple(params))
                 results = cursor.fetchall()
-                return [Video.from_dict(row) for row in results]
+                videos = [Video.from_dict(row) for row in results]
+                
+                return videos, total_count
         finally:
             connection.close()
 
@@ -59,20 +93,38 @@ class VideoRepository:
         finally:
             connection.close()
 
+    def get_public_by_source_url(self, source_url):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT * FROM Video WHERE SourceUrl = %s AND UserId IS NULL LIMIT 1"
+                cursor.execute(sql, (source_url,))
+                result = cursor.fetchone()
+                return Video.from_dict(result) if result else None
+        finally:
+            connection.close()
+
     # ─────────────────── CREATE ───────────────────
 
-    def create(self, title, thumbnail, source_url, type_video, user_id=None, public_video_id=None):
+    def create(self, title, thumbnail, source_url, type_video,
+                definition_lang_code, term_lang_code,
+                user_id=None, public_video_id=None):
         """Tạo mới 1 video (dùng cho cả public lẫn private)."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
                 sql = """
-                    INSERT INTO Video (Title, Thumbnail, SourceUrl, TypeVideo, CreatedAt, UserId, PublicVideoId)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO Video (
+                        Title, Thumbnail, SourceUrl, TypeVideo, CreatedAt,
+                        UserId, PublicVideoId,
+                        DefinitionLanguageCode, TermLanguageCode
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
                 cursor.execute(sql, (
                     title, thumbnail, source_url, type_video,
-                    datetime.now().date(), user_id, public_video_id
+                    datetime.now().date(), user_id, public_video_id,
+                    definition_lang_code, term_lang_code
                 ))
                 new_id = cursor.lastrowid
             connection.commit()
@@ -85,16 +137,18 @@ class VideoRepository:
     def update(self, video_id, update_data):
         """
         Cập nhật video theo các field cho phép.
-        update_data: dict với key là tên field Python (title, thumbnail, source_url, type_video)
+        update_data: dict với key là tên field Python
         """
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
                 field_map = {
-                    'title':      'Title',
-                    'thumbnail':  'Thumbnail',
-                    'source_url': 'SourceUrl',
-                    'type_video': 'TypeVideo',
+                    'title':                'Title',
+                    'thumbnail':            'Thumbnail',
+                    'source_url':           'SourceUrl',
+                    'type_video':           'TypeVideo',
+                    'definition_lang_code': 'DefinitionLanguageCode',
+                    'term_lang_code':       'TermLanguageCode',
                 }
 
                 set_parts = []
@@ -132,10 +186,17 @@ class VideoRepository:
     # ─────────────────── DELETE ───────────────────
 
     def delete(self, video_id):
-        """Xóa video theo Id."""
+        """Xóa video theo Id và các data liên quan."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
+                # 1. Tháo liên kết các video bản sao (tránh lỗi khóa ngoại FK_Video_Public nếu đây là Public Video)
+                cursor.execute("UPDATE Video SET PublicVideoId = NULL WHERE PublicVideoId = %s", (video_id,))
+                
+                # 2. Xóa toàn bộ subtitle của video này
+                cursor.execute("DELETE FROM Subtitle WHERE VideoId = %s", (video_id,))
+                
+                # 3. Cuối cùng mới xóa video
                 cursor.execute("DELETE FROM Video WHERE Id = %s", (video_id,))
             connection.commit()
             return cursor.rowcount > 0

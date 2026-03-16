@@ -2,6 +2,10 @@ import re
 import urllib.request
 import urllib.parse
 import json
+import os
+
+YOUTUBE_SUB_API_URL = os.getenv('YOUTUBE_SUB_API_URL', 'https://simple-emu-vocal.ngrok-free.app')
+
 
 
 def extract_youtube_video_id(url: str) -> str | None:
@@ -99,3 +103,48 @@ def fetch_youtube_info(source_url: str) -> dict:
         'video_id':  video_id,
         'error':     None
     }
+
+
+def start_youtube_subtitle_job(source_url: str, term_lang_code: str, definition_lang_code: str) -> str | None:
+    """
+    Gọi External API để start job tạo subtitle.
+    Trả về job_id nếu thành công, None nếu thất bại.
+    """
+    url = f"{YOUTUBE_SUB_API_URL}/youtube"
+    payload = {
+        "sourceurl": source_url,
+        "termlanguagecode": term_lang_code,
+        "definitionlanguagecode": definition_lang_code
+    }
+    data = json.dumps(payload).encode('utf-8')
+    headers = {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
+    }
+    req = urllib.request.Request(url, data=data, headers=headers, method='POST')
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            resp_data = json.loads(resp.read().decode('utf-8'))
+            if resp_data.get('success'):
+                return resp_data.get('data', {}).get('job_id')
+    except Exception as e:
+        print(f"[YouTube Job] Failed to start job: {e}")
+    return None
+
+
+def check_youtube_subtitle_job(job_id: str) -> dict | None:
+    """
+    Kiểm tra tiến trình job từ External API.
+    Trả về nguyên response dict từ external API hoặc None nếu lỗi.
+    """
+    url = f"{YOUTUBE_SUB_API_URL}/progress/{job_id}"
+    headers = {
+        'ngrok-skip-browser-warning': 'true'
+    }
+    req = urllib.request.Request(url, headers=headers, method='GET')
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return json.loads(resp.read().decode('utf-8'))
+    except Exception as e:
+        print(f"[YouTube Job] Failed to check job progress {job_id}: {e}")
+    return None
