@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flasgger import Swagger
 from app.controllers.user_controller import user_bp
 from app.controllers.word_set_controller import word_set_bp
+from app.controllers.video_controller import video_bp
 
 def create_app():
     app = Flask(__name__)
@@ -19,6 +20,7 @@ def create_app():
     # Register Blueprints
     app.register_blueprint(user_bp, url_prefix='/api/users')
     app.register_blueprint(word_set_bp, url_prefix='/api/word-sets')
+    app.register_blueprint(video_bp, url_prefix='/api/videos')
 
     @app.route('/')
     def index():
