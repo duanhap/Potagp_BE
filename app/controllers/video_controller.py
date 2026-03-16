@@ -136,6 +136,61 @@ def get_my_videos():
 
 
 # ═══════════════════════════════════════════════════════════
+#  GET  /api/videos/recent   – Lấy video đã xem gần đây của user
+# ═══════════════════════════════════════════════════════════
+@video_bp.route('/recent', methods=['GET'])
+@token_required
+def get_recent_videos():
+    """
+    Get recent opened videos of the authenticated user
+    ---
+    tags:
+      - Video
+    parameters:
+      - name: page
+        in: query
+        type: integer
+        required: false
+        description: Page number for pagination
+      - name: size
+        in: query
+        type: integer
+        required: false
+        description: Number of items per page
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Firebase ID Token (Bearer <token>)
+    responses:
+      200:
+        description: Recent videos retrieved successfully
+      404:
+        description: User not found
+      401:
+        description: Unauthorized
+    """
+    uid = request.user['uid']
+    page = request.args.get('page', type=int)
+    size = request.args.get('size', type=int)
+    
+    res, error = video_service.get_recent_videos(uid, page, size)
+
+    if error:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+
+    videos, total_count = res
+
+    return jsonify({
+        'success': True,
+        'message': 'Recent videos retrieved successfully',
+        'data': [v.to_dict() for v in videos],
+        'total_count': total_count,
+        'page': page,
+        'size': size
+    }), 200
+
+# ═══════════════════════════════════════════════════════════
 #  GET  /api/videos/<id>   – Lấy chi tiết 1 video
 # ═══════════════════════════════════════════════════════════
 @video_bp.route('/<int:video_id>', methods=['GET'])

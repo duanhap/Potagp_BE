@@ -79,6 +79,32 @@ class VideoRepository:
         finally:
             connection.close()
 
+    def get_recent_by_user_id(self, user_id, limit=None, offset=None):
+        """Lấy danh sách video xem gần đây (LastOpened IS NOT NULL) của user."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                base_query = "FROM Video WHERE UserId = %s AND LastOpened IS NOT NULL"
+                params = [user_id]
+                
+                # Mặc định lấy tổng số dòng thỏa mãn (để phân trang)
+                cursor.execute(f"SELECT COUNT(*) as total {base_query}", tuple(params))
+                count_result = cursor.fetchone()
+                total_count = count_result['total'] if isinstance(count_result, dict) else count_result[0]
+                
+                query = f"SELECT * {base_query} ORDER BY LastOpened DESC"
+                if limit is not None and offset is not None:
+                    query += " LIMIT %s OFFSET %s"
+                    params.extend([limit, offset])
+
+                cursor.execute(query, tuple(params))
+                results = cursor.fetchall()
+                videos = [Video.from_dict(row) for row in results]
+                
+                return videos, total_count
+        finally:
+            connection.close()
+
     def get_user_copy_of_public(self, user_id, public_video_id):
         """Kiểm tra xem user đã có bản sao của video chung này chưa."""
         connection = get_db_connection()

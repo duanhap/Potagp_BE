@@ -58,6 +58,21 @@ class VideoService:
         videos, total_count = self.video_repo.get_all_by_user_id(user.id, type_video, limit, offset)
         return (videos, total_count), None
 
+    def get_recent_videos(self, uid, page=None, size=None):
+        """Lấy danh sách video của user đã xem gần đây (LastOpened != NULL)."""
+        user = self.user_repo.get_by_uid(uid)
+        if not user:
+            return None, 'user_not_found'
+            
+        limit = None
+        offset = None
+        if page is not None and size is not None:
+            limit = size
+            offset = (page - 1) * size
+            
+        videos, total_count = self.video_repo.get_recent_by_user_id(user.id, limit, offset)
+        return (videos, total_count), None
+
     def get_video_detail(self, video_id, uid):
         """
         Lấy chi tiết 1 video.
