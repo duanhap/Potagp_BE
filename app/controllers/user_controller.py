@@ -87,3 +87,145 @@ def get_profile():
         return jsonify({'success': False,'message': 'User not found'}), 404
         
     return jsonify({'success': True,'message': 'User profile retrieved successfully', 'data': user.to_dict()}), 200
+
+@user_bp.route('/profile', methods=['PUT'])
+@token_required
+def update_profile():
+    """
+    Update user profile information
+    ---
+    tags:
+      - User
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "John Doe"
+            avatar:
+              type: string
+              example: "https://example.com/avatar.jpg"
+            token_fcm:
+              type: string
+              example: "fcm_token_value"
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Firebase ID Token (Bearer <token>)
+    responses:
+      200:
+        description: User profile updated successfully
+      400:
+        description: Invalid request body or no valid fields to update
+      404:
+        description: User not found
+      401:
+        description: Unauthorized (Invalid or missing token)
+    """
+    uid = request.user['uid']
+    data = request.get_json(silent=True) or {}
+
+    user, error = user_service.update_user_profile(uid, data)
+    if error:
+        status_code = 404 if error == 'User not found' else 400
+        return jsonify({'success': False, 'message': error}), status_code
+
+    return jsonify({
+        'success': True,
+        'message': 'User profile updated successfully',
+        'data': user.to_dict()
+    }), 200
+
+@user_bp.route('/settings', methods=['PUT'])
+@token_required
+def save_user_settings():
+    """
+    Save user settings
+    ---
+    tags:
+      - User
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            notification:
+              type: integer
+              example: 1
+              description: 0 or 1
+            language:
+              type: string
+              example: "en"
+              description: "en or vi"
+            experiencegoal:
+              type: integer
+              example: 15
+              description: Defaults to 15 if not provided
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Firebase ID Token (Bearer <token>)
+    responses:
+      200:
+        description: User settings saved successfully
+      400:
+        description: Invalid request body
+      404:
+        description: User not found
+      401:
+        description: Unauthorized (Invalid or missing token)
+    """
+    uid = request.user['uid']
+    data = request.get_json(silent=True) or {}
+
+    setting, error = user_service.save_user_setting(uid, data)
+    if error:
+        status_code = 404 if error == 'User not found' else 400
+        return jsonify({'success': False, 'message': error}), status_code
+
+    return jsonify({
+        'success': True,
+        'message': 'User settings saved successfully',
+        'data': setting.to_dict()
+    }), 200
+
+@user_bp.route('/settings', methods=['GET'])
+@token_required
+def get_user_settings():
+    """
+    Get user settings
+    ---
+    tags:
+      - User
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Firebase ID Token (Bearer <token>)
+    responses:
+      200:
+        description: User settings retrieved successfully
+      404:
+        description: User not found
+      401:
+        description: Unauthorized (Invalid or missing token)
+    """
+    uid = request.user['uid']
+    setting, error = user_service.get_user_setting(uid)
+    if error:
+        return jsonify({'success': False, 'message': error}), 404
+
+    return jsonify({
+        'success': True,
+        'message': 'User settings retrieved successfully',
+        'data': setting.to_dict()
+    }), 200
