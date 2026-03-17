@@ -5,6 +5,59 @@ import json
 import os
 
 YOUTUBE_SUB_API_URL = os.getenv('YOUTUBE_SUB_API_URL', 'https://simple-emu-vocal.ngrok-free.app')
+YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
+
+
+def parse_iso8601_duration(duration_str: str) -> int:
+    """Trả về tổng số giây từ chuỗi ISO 8601 (VD: PT1H2M3S)."""
+    if not duration_str:
+        return 0
+    match = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', duration_str)
+    if not match:
+        return 0
+    
+    hours = int(match.group(1)) if match.group(1) else 0
+    minutes = int(match.group(2)) if match.group(2) else 0
+    seconds = int(match.group(3)) if match.group(3) else 0
+    
+    return hours * 3600 + minutes * 60 + seconds
+
+def is_youtube_video_length_valid(video_id: str, max_minutes: int = 30) -> bool:
+    """
+    Check xem video có vượt quá thời lượng tối đa không sử dụng YouTube API.
+    Trả về True nếu hợp lệ (<= 30 phút), False nếu quá dài hoặc không xác định được khi có lỗi/thiếu key nhưng nên mặc định True nếu thiếu key để không chặn lầm.
+    Nhưng theo design có key, ta check nếu vượt max_minutes thì return False.
+    """
+    if not YOUTUBE_API_KEY:
+        # Nếu chưa cấu hình key, tạm bỏ qua để tránh lỗi sập tạo video.
+        print("[YouTube Job] Missing YOUTUBE_API_KEY in .env!")
+        return True
+        
+    url = f"https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id={video_id}&key={YOUTUBE_API_KEY}"
+    try:
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            items = data.get('items', [])
+            if not items:
+                # Video không tồn tại hoặc bị ẩn
+                return False
+                
+            duration_str = items[0].get('contentDetails', {}).get('duration')
+            total_seconds = parse_iso8601_duration(duration_str)
+            
+            # Check duration limits
+            if total_seconds > max_minutes * 60:
+                print(f"[YouTube Job] Video {video_id} is too long: {total_seconds} seconds")
+                return False
+                
+    except Exception as e:
+        print(f"[YouTube Job] Failed to check video duration {video_id}: {e}")
+        # Mặc định True nếu API fetch lỗi tránh chặn app lúc rate-limit.
+        return True
+        
+    return True
+
 
 
 
@@ -148,3 +201,28 @@ def check_youtube_subtitle_job(job_id: str) -> dict | None:
     except Exception as e:
         print(f"[YouTube Job] Failed to check job progress {job_id}: {e}")
     return None
+
+def cancel_youtube_subtitle_job(job_id: str) -> dict:
+    """
+    Gọi External API để hủy một job phụ đề đang chạy.
+    Trả về dict {'success': bool, 'message': str}
+    """
+    url = f"{YOUTUBE_SUB_API_URL}/cancel/{job_id}"
+    headers = {
+        'ngrok-skip-browser-warning': 'true'
+    }
+    # Payload empty for POST req
+    req = urllib.request.Request(url, headers=headers, method='POST', data=b'')
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            return {
+                'success': data.get('success', False),
+                'message': data.get('message', '')
+            }
+    except Exception as e:
+        print(f"[YouTube Job] Failed to cancel job {job_id}: {e}")
+        return {
+            'success': False,
+            'message': f'Exception: {str(e)}'
+        }

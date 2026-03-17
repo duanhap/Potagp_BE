@@ -189,3 +189,74 @@ def sync_job_status(video_id):
         'message': 'Job status retrieved successfully',
         'data': job_info
     }), 200
+
+@subtitle_bp.route('/<int:video_id>/cancel-job', methods=['POST'])
+@token_required
+def cancel_job_status(video_id):
+    """
+    Cancel an external YouTube subtitle job and delete the respective video if successful
+    ---
+    tags:
+      - Subtitle
+    parameters:
+      - name: video_id
+        in: path
+        type: integer
+        required: true
+        description: ID of the video 
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Firebase ID Token (Bearer <token>)
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - job_id
+          properties:
+            job_id:
+              type: string
+              example: "5fbbddd7-19f3-45ab-a52a-10730ac65746"
+              description: "The job_id returned during video creation"
+    responses:
+      200:
+        description: Job cancelled and video deleted successfully
+      400:
+        description: job_id is required
+      403:
+        description: Forbidden
+      404:
+        description: Video or User not found
+      401:
+        description: Unauthorized
+      500:
+        description: Could not contact external tracking service
+    """
+    uid = request.user['uid']
+    data = request.get_json(silent=True) or {}
+    job_id = data.get('job_id')
+    
+    if not job_id:
+        return jsonify({'success': False, 'message': 'job_id is required in the request body'}), 400
+        
+    cancel_res, error = subtitle_service.cancel_youtube_job(video_id, uid, job_id)
+    
+    if error == 'user_not_found':
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+    if error == 'not_found':
+        return jsonify({'success': False, 'message': 'Video not found'}), 404
+    if error == 'forbidden_admin_required':
+        return jsonify({'success': False, 'message': 'Admin role required to perform this action'}), 403
+    if error == 'forbidden':
+        return jsonify({'success': False, 'message': 'You do not own this video'}), 403
+        
+    if not cancel_res:
+        return jsonify({'success': False, 'message': 'Could not check job progress from external service'}), 500
+        
+    return jsonify({
+        'success': cancel_res.get('success', False),
+        'message': cancel_res.get('message', '')
+    }), 200

@@ -1,6 +1,6 @@
 from app.repositories.video_repository import VideoRepository
 from app.repositories.user_repository import UserRepository
-from app.utils.youtube_helper import fetch_youtube_info, start_youtube_subtitle_job
+from app.utils.youtube_helper import fetch_youtube_info, start_youtube_subtitle_job, extract_youtube_video_id, is_youtube_video_length_valid
 
 
 class VideoService:
@@ -120,6 +120,11 @@ class VideoService:
         if not definition_lang_code or not term_lang_code:
             return None, 'lang_codes_required'
 
+        if type_video == 'youtube':
+            vid_id = extract_youtube_video_id(source_url)
+            if vid_id and not is_youtube_video_length_valid(vid_id, 30):
+                return None, 'video_too_long'
+
         # Auto-fetch YouTube metadata nếu cần
         if type_video == 'youtube':
             title, thumbnail = self._enrich_youtube_meta(source_url, title, thumbnail)
@@ -152,6 +157,11 @@ class VideoService:
 
         if not definition_lang_code or not term_lang_code:
             return None, 'lang_codes_required'
+
+        if type_video == 'youtube':
+            vid_id = extract_youtube_video_id(source_url)
+            if vid_id and not is_youtube_video_length_valid(vid_id, 30):
+                return None, 'video_too_long'
 
         # Check trùng public video by source_url nếu là youtube
         if type_video == 'youtube':
