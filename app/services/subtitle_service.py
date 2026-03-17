@@ -2,7 +2,7 @@ import re
 from app.repositories.video_repository import VideoRepository
 from app.repositories.user_repository import UserRepository
 from app.repositories.subtitle_repository import SubtitleRepository
-from app.utils.youtube_helper import check_youtube_subtitle_job
+from app.utils.youtube_helper import check_youtube_subtitle_job, cancel_youtube_subtitle_job
 
 def parse_srt_content(file_content: str):
     """
@@ -196,3 +196,28 @@ class SubtitleService:
                 self.subtitle_repo.insert_many(format_subs, video_id)
                 
         return job_res, None
+
+    def cancel_youtube_job(self, video_id, uid, job_id):
+        user = self.user_repo.get_by_uid(uid)
+        if not user:
+            return None, 'user_not_found'
+            
+        video = self.video_repo.get_by_id(video_id)
+        if not video:
+            return None, 'not_found'
+            
+        if video.user_id is None:
+            if user.role != 'Admin':
+                return None, 'forbidden_admin_required'
+        else:
+            if video.user_id != user.id:
+                return None, 'forbidden'
+
+        cancel_res = cancel_youtube_subtitle_job(job_id)
+        
+        # Nếu gửi yêu cầu hủy thành công (tức External API trả về {success: True}),
+        # Xóa video khỏi CSDL (theo logic: MK làm API gọi đến và nếu thành công thì xóa video đó đi luôn).
+        if cancel_res and cancel_res.get('success'):
+            self.video_repo.delete(video_id)
+            
+        return cancel_res, None
