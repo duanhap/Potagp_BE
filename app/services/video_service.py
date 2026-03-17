@@ -102,10 +102,10 @@ class VideoService:
     # ─────────────────────────────────────────────
 
     def create_public_video(self, uid, title, thumbnail, source_url, type_video,
-                             definition_lang_code, term_lang_code):
+                             definition_lang_code, term_lang_code, server_source_url=None):
         """
         Tạo video chung (recommend). Chỉ Admin mới có quyền.
-        Nếu type_video='youtube' và title/thumbnail chưa đủ → tự động fetch.
+        Nếu type_video='youtube' và title/thumbnail chưa được cung cấp → tự động fetch.
         """
         user = self.user_repo.get_by_uid(uid)
         if not user:
@@ -137,13 +137,14 @@ class VideoService:
             definition_lang_code=definition_lang_code,
             term_lang_code=term_lang_code,
             user_id=None,           # video chung: không thuộc user nào
-            public_video_id=None
+            public_video_id=None,
+            server_source_url=server_source_url
         )
 
         return self.video_repo.get_by_id(new_id), None
 
     def create_my_video(self, uid, title, thumbnail, source_url, type_video,
-                        definition_lang_code, term_lang_code):
+                        definition_lang_code, term_lang_code, server_source_url=None):
         """
         Tạo video riêng của user.
         Nếu type_video='youtube' và title/thumbnail chưa đủ → tự động fetch.
@@ -189,7 +190,8 @@ class VideoService:
             definition_lang_code=definition_lang_code,
             term_lang_code=term_lang_code,
             user_id=user.id,
-            public_video_id=None
+            public_video_id=None,
+            server_source_url=server_source_url
         )
 
         job_id = None
@@ -232,7 +234,8 @@ class VideoService:
             definition_lang_code=public_video.definition_lang_code,
             term_lang_code=public_video.term_lang_code,
             user_id=user.id,
-            public_video_id=public_video_id
+            public_video_id=public_video_id,
+            server_source_url=public_video.server_source_url
         )
         self.video_repo.update_last_opened(new_id)
         return self.video_repo.get_by_id(new_id), None
@@ -266,7 +269,7 @@ class VideoService:
 
         allowed_fields = {
             'title', 'thumbnail', 'source_url', 'type_video',
-            'definition_lang_code', 'term_lang_code'
+            'definition_lang_code', 'term_lang_code', 'server_source_url'
         }
         update_data = {k: v for k, v in data.items() if k in allowed_fields and v is not None}
 
