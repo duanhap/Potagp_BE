@@ -13,6 +13,20 @@ class SentencePatternService:
             return None
         return self.sentence_pattern_repository.get_all_by_user_id(user.id)
 
+    def get_sentence_patterns_with_recent(self, uid, limit=10):
+        user = self.user_repository.get_by_uid(uid)
+        if not user:
+            return None, None
+        all_patterns = self.sentence_pattern_repository.get_all_by_user_id(user.id)
+        recent_patterns = self.sentence_pattern_repository.get_recent_by_user_id(user.id, limit)
+        return all_patterns, recent_patterns
+
+    def get_recent_sentence_patterns(self, uid, limit=3):
+        user = self.user_repository.get_by_uid(uid)
+        if not user:
+            return None
+        return self.sentence_pattern_repository.get_recent_by_user_id(user.id, limit)
+
     def get_sentence_pattern(self, sentence_pattern_id, uid):
         user = self.user_repository.get_by_uid(uid)
         if not user:

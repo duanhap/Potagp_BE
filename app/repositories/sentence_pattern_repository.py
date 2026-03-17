@@ -26,6 +26,17 @@ class SentencePatternRepository:
         finally:
             connection.close()
 
+    def get_recent_by_user_id(self, user_id, limit=10):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT * FROM SetencePattern WHERE UserId = %s ORDER BY LastOpened DESC, UpdateAt DESC, CreatedAt DESC LIMIT %s"
+                cursor.execute(sql, (user_id, limit))
+                results = cursor.fetchall()
+                return [SentencePattern.from_dict(row) for row in results]
+        finally:
+            connection.close()
+
     def create(self, name, description, is_public, term_lang_code, def_lang_code, user_id):
         connection = get_db_connection()
         try:
