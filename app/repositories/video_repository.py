@@ -130,6 +130,20 @@ class VideoRepository:
         finally:
             connection.close()
 
+    def check_user_duplicate_video(self, user_id, source_url, definition_lang_code, term_lang_code):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = """SELECT Id FROM Video 
+                         WHERE UserId = %s AND SourceUrl = %s 
+                               AND DefinitionLanguageCode = %s AND TermLanguageCode = %s 
+                         LIMIT 1"""
+                cursor.execute(sql, (user_id, source_url, definition_lang_code, term_lang_code))
+                result = cursor.fetchone()
+                return result is not None
+        finally:
+            connection.close()
+
     # ─────────────────── CREATE ───────────────────
 
     def create(self, title, thumbnail, source_url, type_video,
