@@ -159,6 +159,10 @@ class VideoService:
             return None, 'lang_codes_required'
 
         if type_video == 'youtube':
+            # Check trùng video của chính user (cùng URL + cùng cặp ngôn ngữ)
+            if self.video_repo.check_user_duplicate_video(user.id, source_url, definition_lang_code, term_lang_code):
+                return None, 'video_already_exists'
+
             vid_id = extract_youtube_video_id(source_url)
             if vid_id and not is_youtube_video_length_valid(vid_id, 30):
                 return None, 'video_too_long'

@@ -408,6 +408,8 @@ def create_my_video():
         return jsonify({'success': False, 'message': 'source_url is required'}), 400
     if error == 'lang_codes_required':
         return jsonify({'success': False, 'message': 'definition_lang_code and term_lang_code are required'}), 400
+    if error == 'video_already_exists':
+        return jsonify({'success': False, 'message': 'You already have this video with the same language settings.'}), 409
     if error == 'video_too_long':
         return jsonify({'success': False, 'message': 'Video is too long. The maximum allowed length is 30 minutes.'}), 400
 
