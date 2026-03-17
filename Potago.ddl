@@ -126,6 +126,7 @@ CREATE TABLE Video (
   PublicVideoId          int(10) NULL,
   DefinitionLanguageCode varchar(255) NOT NULL, 
   TermLanguageCode       varchar(255) NOT NULL, 
+  ServerSourceUrl        varchar(255) NULL,
   PRIMARY KEY (Id));
 CREATE TABLE Subtitle (
   Id            int(10) NOT NULL AUTO_INCREMENT, 

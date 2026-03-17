@@ -306,10 +306,11 @@ def create_public_video():
     type_video          = data.get('type_video')
     definition_lang_code = data.get('definition_lang_code')
     term_lang_code      = data.get('term_lang_code')
+    server_source_url   = data.get('server_source_url')
 
     video, error = video_service.create_public_video(
         uid, title, thumbnail, source_url, type_video,
-        definition_lang_code, term_lang_code
+        definition_lang_code, term_lang_code, server_source_url
     )
 
     if error == 'user_not_found':
@@ -396,10 +397,11 @@ def create_my_video():
     type_video           = data.get('type_video')
     definition_lang_code = data.get('definition_lang_code')
     term_lang_code       = data.get('term_lang_code')
+    server_source_url    = data.get('server_source_url')
 
     res, error = video_service.create_my_video(
         uid, title, thumbnail, source_url, type_video,
-        definition_lang_code, term_lang_code
+        definition_lang_code, term_lang_code, server_source_url
     )
 
     if error == 'user_not_found':
