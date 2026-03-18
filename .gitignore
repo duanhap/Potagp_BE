@@ -2,3 +2,5 @@
 firebase-service-account.json
 __pycache__
 firebase_single_line.txt
+.idea/
+.venv/
