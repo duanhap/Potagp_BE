@@ -66,7 +66,7 @@ class VideoRepository:
                 count_result = cursor.fetchone()
                 total_count = count_result['total'] if isinstance(count_result, dict) else count_result[0]
                 
-                query = f"SELECT * {base_query} ORDER BY LastOpened DESC, CreatedAt DESC"
+                query = f"SELECT * {base_query} ORDER BY CreatedAt DESC, Id DESC"
                 if limit is not None and offset is not None:
                     query += " LIMIT %s OFFSET %s"
                     params.extend([limit, offset])
