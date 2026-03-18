@@ -1,6 +1,8 @@
 class Video:
-    def __init__(self, id=None, title=None, thumbnail=None, source_url=None, 
-                 last_opened=None, type_video=None, created_at=None, user_id=None):
+    def __init__(self, id=None, title=None, thumbnail=None, source_url=None,
+                 last_opened=None, type_video=None, created_at=None, user_id=None,
+                 public_video_id=None, definition_lang_code=None, term_lang_code=None,
+                 server_source_url=None):
         self.id = id
         self.title = title
         self.thumbnail = thumbnail
@@ -9,6 +11,10 @@ class Video:
         self.type_video = type_video
         self.created_at = created_at
         self.user_id = user_id
+        self.public_video_id = public_video_id
+        self.definition_lang_code = definition_lang_code
+        self.term_lang_code = term_lang_code
+        self.server_source_url = server_source_url
 
     @staticmethod
     def from_dict(data):
@@ -21,7 +27,11 @@ class Video:
             last_opened=str(data.get('LastOpened')) if data.get('LastOpened') else None,
             type_video=data.get('TypeVideo'),
             created_at=str(data.get('CreatedAt')) if data.get('CreatedAt') else None,
-            user_id=data.get('UserId')
+            user_id=data.get('UserId'),
+            public_video_id=data.get('PublicVideoId'),
+            definition_lang_code=data.get('DefinitionLanguageCode'),
+            term_lang_code=data.get('TermLanguageCode'),
+            server_source_url=data.get('ServerSourceUrl')
         )
 
     def to_dict(self):
@@ -29,5 +39,8 @@ class Video:
             'id': self.id, 'title': self.title, 'thumbnail': self.thumbnail,
             'source_url': self.source_url, 'last_opened': self.last_opened,
             'type_video': self.type_video, 'created_at': self.created_at,
-            'user_id': self.user_id
+            'user_id': self.user_id, 'public_video_id': self.public_video_id,
+            'definition_lang_code': self.definition_lang_code,
+            'term_lang_code': self.term_lang_code,
+            'server_source_url': self.server_source_url
         }

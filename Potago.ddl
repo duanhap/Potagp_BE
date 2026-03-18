@@ -115,19 +115,27 @@ CREATE TABLE Item (
   UserId          int(10) NOT NULL, 
   PRIMARY KEY (Id));
 CREATE TABLE Video (
-  Id         int(10) NOT NULL AUTO_INCREMENT, 
-  Title      varchar(255) NOT NULL, 
-  Thumbnail  varchar(255) NOT NULL, 
-  SourceUrl  varchar(255) NOT NULL, 
-  LastOpened timestamp NULL, 
-  TypeVideo  int(10), 
-  CreatedAt  date, 
-  UserId     int(10), 
+  Id                     int(10) NOT NULL AUTO_INCREMENT, 
+  Title                  varchar(255) NULL, 
+  Thumbnail              varchar(255) NULL, 
+  SourceUrl              varchar(255) NOT NULL, 
+  LastOpened             timestamp NULL, 
+  TypeVideo              varchar(255), 
+  CreatedAt              date, 
+  UserId                 int(10) NULL, 
+  PublicVideoId          int(10) NULL,
+  DefinitionLanguageCode varchar(255) NOT NULL, 
+  TermLanguageCode       varchar(255) NOT NULL, 
+  ServerSourceUrl        varchar(255) NULL,
   PRIMARY KEY (Id));
 CREATE TABLE Subtitle (
-  Id        int(10) NOT NULL AUTO_INCREMENT, 
-  SourceUrl int(10) NOT NULL, 
-  VideoId   int(10) NOT NULL, 
+  Id            int(10) NOT NULL AUTO_INCREMENT, 
+  StartTime     int(10),
+  EndTime       int(10),
+  Content       TEXT,
+  Pronunciation TEXT,
+  Translation   TEXT;
+  VideoId       int(10) NOT NULL, 
   PRIMARY KEY (Id));
 ALTER TABLE Streak ADD CONSTRAINT FKStreak329675 FOREIGN KEY (UserId) REFERENCES `User` (Id);
 ALTER TABLE WordSet ADD CONSTRAINT FKWordSet74244 FOREIGN KEY (UserId) REFERENCES `User` (Id);
@@ -142,5 +150,6 @@ ALTER TABLE Setence ADD CONSTRAINT FKSetence294133 FOREIGN KEY (SetencePatternId
 ALTER TABLE WritingGame ADD CONSTRAINT FKWritingGam602527 FOREIGN KEY (SetencePatternId) REFERENCES SetencePattern (Id);
 ALTER TABLE SetencePattern ADD CONSTRAINT FKSetencePat143848 FOREIGN KEY (UserId) REFERENCES `User` (Id);
 ALTER TABLE Video ADD CONSTRAINT FKVideo866843 FOREIGN KEY (UserId) REFERENCES `User` (Id);
+ALTER TABLE Video ADD CONSTRAINT FK_Video_Public FOREIGN KEY (PublicVideoId) REFERENCES Video(Id);
 ALTER TABLE Subtitle ADD CONSTRAINT FKSubtitle235120 FOREIGN KEY (VideoId) REFERENCES Video (Id);
 ALTER TABLE Setting ADD CONSTRAINT FKSetting80873 FOREIGN KEY (UserId) REFERENCES `User` (Id);

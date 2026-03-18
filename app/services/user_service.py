@@ -43,3 +43,43 @@ class UserService:
             return existing_user, None
 
         return self.user_repository.get_by_uid(uid), None
+
+    def save_user_setting(self, uid, data):
+        if not isinstance(data, dict):
+            return None, 'Invalid request body'
+
+        notification = data.get('notification')
+        language = data.get('language')
+        experience_goal = data.get('experiencegoal', data.get('experience_goal', 15))
+
+        if notification not in (0, 1, True, False):
+            return None, 'notification must be 0 or 1'
+
+        if language not in ('en', 'vi'):
+            return None, 'language must be en or vi'
+
+        try:
+            experience_goal = int(experience_goal)
+        except (TypeError, ValueError):
+            return None, 'experiencegoal must be an integer'
+
+        if experience_goal <= 0:
+            return None, 'experiencegoal must be greater than 0'
+
+        setting = self.user_repository.save_user_setting(
+            uid=uid,
+            notification=int(bool(notification)),
+            language=language,
+            experience_goal=experience_goal
+        )
+
+        if not setting:
+            return None, 'User not found'
+
+        return setting, None
+
+    def get_user_setting(self, uid):
+        setting = self.user_repository.get_user_setting(uid)
+        if not setting:
+            return None, 'User not found'
+        return setting, None
