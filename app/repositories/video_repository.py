@@ -54,7 +54,7 @@ class VideoRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                base_query = "FROM Video WHERE UserId = %s"
+                base_query = "FROM Video WHERE UserId = %s AND PublicVideoId IS NULL"
                 params = [user_id]
                 
                 if type_video:
