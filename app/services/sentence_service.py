@@ -9,7 +9,7 @@ class SentenceService:
         self.sentence_pattern_repository = SentencePatternRepository()
         self.user_repository = UserRepository()
 
-    def get_sentences_by_pattern(self, uid, pattern_id):
+    def get_sentences_by_pattern(self, uid, pattern_id, page=1, page_size=20):
         user = self.user_repository.get_by_uid(uid)
         if not user:
             return None, 'user_not_found'
@@ -20,7 +20,9 @@ class SentenceService:
         if pattern.user_id != user.id and not pattern.is_public:
             return None, 'forbidden'
 
-        return self.sentence_repository.get_by_pattern_id(pattern_id), None
+        sentences = self.sentence_repository.get_by_pattern_id(pattern_id, page, page_size)
+        total = self.sentence_repository.count_by_pattern_id(pattern_id)
+        return {'sentences': sentences, 'total': total}, None
 
     def create_sentences_bulk(self, uid, pattern_id, sentences):
         user = self.user_repository.get_by_uid(uid)
@@ -36,7 +38,9 @@ class SentenceService:
         inserted = self.sentence_repository.create_bulk(sentences, pattern_id)
         return inserted, None
 
-    def create_sentence(self, uid, pattern_id, term, definition, status='active', mistakes=0):
+    def create_sentence(self, uid, pattern_id, term, definition, status='unknown', mistakes=0):
+        if status not in ['unknown', 'known']:
+            return None, 'invalid_status'
         user = self.user_repository.get_by_uid(uid)
         if not user:
             return None, 'user_not_found'
@@ -50,7 +54,9 @@ class SentenceService:
         sentence_id = self.sentence_repository.create(term, definition, status, mistakes, pattern_id)
         return self.sentence_repository.get_by_id(sentence_id), None
 
-    def update_sentence(self, sentence_id, uid, term, definition, status='active', mistakes=0):
+    def update_sentence(self, sentence_id, uid, term, definition, status='unknown', mistakes=0):
+        if status not in ['unknown', 'known']:
+            return None, 'invalid_status'
         user = self.user_repository.get_by_uid(uid)
         if not user:
             return None, 'user_not_found'

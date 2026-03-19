@@ -15,14 +15,26 @@ class SentenceRepository:
         finally:
             connection.close()
 
-    def get_by_pattern_id(self, pattern_id):
+    def get_by_pattern_id(self, pattern_id, page=1, page_size=20):
+        offset = (page - 1) * page_size
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT * FROM Setence WHERE SetencePatternId = %s ORDER BY CreatedAt DESC"
-                cursor.execute(sql, (pattern_id,))
+                sql = "SELECT * FROM Setence WHERE SetencePatternId = %s ORDER BY CreatedAt DESC LIMIT %s OFFSET %s"
+                cursor.execute(sql, (pattern_id, page_size, offset))
                 results = cursor.fetchall()
                 return [Sentence.from_dict(row) for row in results]
+        finally:
+            connection.close()
+
+    def count_by_pattern_id(self, pattern_id):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT COUNT(*) AS total FROM Setence WHERE SetencePatternId = %s"
+                cursor.execute(sql, (pattern_id,))
+                result = cursor.fetchone()
+                return result['total'] if result else 0
         finally:
             connection.close()
 
@@ -32,6 +44,7 @@ class SentenceRepository:
             with connection.cursor() as cursor:
                 sql = "INSERT INTO Setence (Term, Definition, CreatedAt, Status, NumberOfMistakes, SetencePatternId) VALUES (%s, %s, %s, %s, %s, %s)"
                 now = datetime.now().date()
+                status = status if status in ['unknown', 'known'] else 'unknown'
                 cursor.execute(sql, (term, definition, now, status, mistakes, pattern_id))
                 connection.commit()
                 return cursor.lastrowid
@@ -48,7 +61,9 @@ class SentenceRepository:
                 for sentence in sentences:
                     term = sentence.get('term')
                     definition = sentence.get('definition')
-                    status = sentence.get('status', 'active')
+                    status = sentence.get('status', 'unknown')
+                    if status not in ['unknown', 'known']:
+                        status = 'unknown'
                     mistakes = sentence.get('mistakes', 0)
                     values.append((term, definition, now, status, mistakes, pattern_id))
 
