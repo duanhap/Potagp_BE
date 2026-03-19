@@ -87,7 +87,7 @@ def get_recent_word_sets():
 
 @word_set_bp.route('/by-id', methods=['GET'])
 @token_required
-def get_word_set():
+def get_word_set(): 
     """
     Get a word set by ID (query)
     ---

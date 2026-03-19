@@ -53,7 +53,7 @@ class WordService:
 
         return word, None
 
-    def create_word(self, uid, word_set_id, term, definition, description=None, status='new'):
+    def create_word(self, uid, word_set_id, term, definition, description=None, status='unknown'):
         user, error = self._check_word_set_access(uid, word_set_id)
         if error:
             return None, error

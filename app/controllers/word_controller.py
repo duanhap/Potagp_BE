@@ -100,7 +100,7 @@ def create_words_bulk():
                     type: string
                   status:
                     type: string
-                    default: "new"
+                    default: "unknown"
     responses:
       201:
         description: Words created successfully
@@ -231,7 +231,7 @@ def create_word():
               type: string
             status:
               type: string
-              default: "new"
+              default: "unknown"
     responses:
       201:
         description: Word created successfully
@@ -255,7 +255,7 @@ def create_word():
         return jsonify({'success': False, 'message': 'word_set_id, term and definition are required'}), 400
 
     description = data.get('description')
-    status = data.get('status', 'new')
+    status = data.get('status', 'unknown')
 
     word, error = word_service.create_word(uid, word_set_id, term, definition, description, status)
 

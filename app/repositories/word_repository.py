@@ -61,7 +61,7 @@ class WordRepository:
             connection.commit()
             return cursor.lastrowid
 
-    def create(self, term, definition, word_set_id, description=None, status='new'):
+    def create(self, term, definition, word_set_id, description=None, status='unknown'):
         connection = get_db_connection()
         try:
             flashcard_game_id = self._get_or_create_flashcard_game(connection, word_set_id)
@@ -106,7 +106,7 @@ class WordRepository:
                         continue
                     cursor.execute(sql, (
                         term, definition, w.get('description'),
-                        now, w.get('status', 'new'),
+                        now, w.get('status', 'unknown'),
                         word_set_id, flashcard_game_id, match_game_id
                     ))
                     created_ids.append(cursor.lastrowid)
