@@ -84,3 +84,14 @@ class WordSetRepository:
             return cursor.rowcount > 0
         finally:
             connection.close()
+
+    def update_last_opened(self, word_set_id, last_opened=None):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "UPDATE WordSet SET LastOpened = %s WHERE Id = %s"
+                cursor.execute(sql, (last_opened or datetime.now(), word_set_id))
+            connection.commit()
+            return cursor.rowcount > 0
+        finally:
+            connection.close()

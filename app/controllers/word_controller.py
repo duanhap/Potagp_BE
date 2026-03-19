@@ -146,11 +146,11 @@ def create_words_bulk():
     }), 201
 
 
-@word_bp.route('/<int:word_id>', methods=['GET'])
+@word_bp.route('/by-id', methods=['GET'])
 @token_required
-def get_word(word_id):
+def get_word():
     """
-    Get a word by ID
+    Get a word by ID (query)
     ---
     tags:
       - Word
@@ -161,7 +161,7 @@ def get_word(word_id):
         required: true
         description: Firebase ID Token (Bearer <token>)
       - name: word_id
-        in: path
+        in: query
         type: integer
         required: true
     responses:
@@ -175,6 +175,9 @@ def get_word(word_id):
         description: Unauthorized
     """
     uid = request.user['uid']
+    word_id = request.args.get('word_id', type=int)
+    if not word_id:
+        return jsonify({'success': False, 'message': 'word_id is required'}), 400
     word, error = word_service.get_word(uid, word_id)
 
     if error == 'user_not_found':
@@ -270,11 +273,11 @@ def create_word():
     }), 201
 
 
-@word_bp.route('/<int:word_id>', methods=['PUT'])
+@word_bp.route('', methods=['PUT'])
 @token_required
-def update_word(word_id):
+def update_word():
     """
-    Update a word
+    Update a word (query)
     ---
     tags:
       - Word
@@ -285,7 +288,7 @@ def update_word(word_id):
         required: true
         description: Firebase ID Token (Bearer <token>)
       - name: word_id
-        in: path
+        in: query
         type: integer
         required: true
       - name: body
@@ -312,6 +315,9 @@ def update_word(word_id):
         description: Unauthorized
     """
     uid = request.user['uid']
+    word_id = request.args.get('word_id', type=int)
+    if not word_id:
+        return jsonify({'success': False, 'message': 'word_id is required'}), 400
     data = request.get_json() or {}
 
     term = data.get('term')
@@ -338,11 +344,11 @@ def update_word(word_id):
     }), 200
 
 
-@word_bp.route('/<int:word_id>', methods=['DELETE'])
+@word_bp.route('', methods=['DELETE'])
 @token_required
-def delete_word(word_id):
+def delete_word():
     """
-    Delete a word
+    Delete a word (query)
     ---
     tags:
       - Word
@@ -353,7 +359,7 @@ def delete_word(word_id):
         required: true
         description: Firebase ID Token (Bearer <token>)
       - name: word_id
-        in: path
+        in: query
         type: integer
         required: true
     responses:
@@ -367,6 +373,9 @@ def delete_word(word_id):
         description: Unauthorized
     """
     uid = request.user['uid']
+    word_id = request.args.get('word_id', type=int)
+    if not word_id:
+        return jsonify({'success': False, 'message': 'word_id is required'}), 400
     error = word_service.delete_word(uid, word_id)
 
     if error == 'user_not_found':

@@ -85,11 +85,11 @@ def get_recent_word_sets():
     }), 200
 
 
-@word_set_bp.route('/<int:word_set_id>', methods=['GET'])
+@word_set_bp.route('/by-id', methods=['GET'])
 @token_required
-def get_word_set(word_set_id):
+def get_word_set():
     """
-    Get a word set by ID
+    Get a word set by ID (query)
     ---
     tags:
       - WordSet
@@ -100,7 +100,7 @@ def get_word_set(word_set_id):
         required: true
         description: Firebase ID Token (Bearer <token>)
       - name: word_set_id
-        in: path
+        in: query
         type: integer
         required: true
     responses:
@@ -114,6 +114,9 @@ def get_word_set(word_set_id):
         description: Unauthorized
     """
     uid = request.user['uid']
+    word_set_id = request.args.get('word_set_id', type=int)
+    if not word_set_id:
+        return jsonify({'success': False, 'message': 'word_set_id is required'}), 400
     word_set, error = word_set_service.get_word_set(word_set_id, uid)
 
     if error == 'user_not_found':
@@ -204,11 +207,11 @@ def create_word_set():
     }), 201
 
 
-@word_set_bp.route('/<int:word_set_id>', methods=['PUT'])
+@word_set_bp.route('', methods=['PUT'])
 @token_required
-def update_word_set(word_set_id):
+def update_word_set():
     """
-    Update a word set
+    Update a word set (query)
     ---
     tags:
       - WordSet
@@ -219,7 +222,7 @@ def update_word_set(word_set_id):
         required: true
         description: Firebase ID Token (Bearer <token>)
       - name: word_set_id
-        in: path
+        in: query
         type: integer
         required: true
       - name: body
@@ -261,6 +264,9 @@ def update_word_set(word_set_id):
     """
     uid = request.user['uid']
     data = request.get_json()
+    word_set_id = request.args.get('word_set_id', type=int)
+    if not word_set_id:
+        return jsonify({'success': False, 'message': 'word_set_id is required'}), 400
 
     name = data.get('name')
     def_lang_code = data.get('def_lang_code')
@@ -290,11 +296,11 @@ def update_word_set(word_set_id):
     }), 200
 
 
-@word_set_bp.route('/<int:word_set_id>', methods=['DELETE'])
+@word_set_bp.route('', methods=['DELETE'])
 @token_required
-def delete_word_set(word_set_id):
+def delete_word_set():
     """
-    Delete a word set
+    Delete a word set (query)
     ---
     tags:
       - WordSet
@@ -305,7 +311,7 @@ def delete_word_set(word_set_id):
         required: true
         description: Firebase ID Token (Bearer <token>)
       - name: word_set_id
-        in: path
+        in: query
         type: integer
         required: true
     responses:
@@ -319,6 +325,9 @@ def delete_word_set(word_set_id):
         description: Unauthorized
     """
     uid = request.user['uid']
+    word_set_id = request.args.get('word_set_id', type=int)
+    if not word_set_id:
+        return jsonify({'success': False, 'message': 'word_set_id is required'}), 400
     error = word_set_service.delete_word_set(word_set_id, uid)
 
     if error == 'user_not_found':

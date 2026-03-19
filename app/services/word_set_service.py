@@ -31,7 +31,8 @@ class WordSetService:
         if word_set.user_id != user.id and not word_set.is_public:
             return None, 'forbidden'
 
-        return word_set, None
+        self.word_set_repository.update_last_opened(word_set_id)
+        return self.word_set_repository.get_by_id(word_set_id), None
 
     def create_word_set(self, uid, name, description, is_public, def_lang_code, term_lang_code):
         user = self.user_repository.get_by_uid(uid)
