@@ -54,7 +54,7 @@ class VideoRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                base_query = "FROM Video WHERE UserId = %s"
+                base_query = "FROM Video WHERE UserId = %s AND PublicVideoId IS NULL"
                 params = [user_id]
                 
                 if type_video:
@@ -66,7 +66,7 @@ class VideoRepository:
                 count_result = cursor.fetchone()
                 total_count = count_result['total'] if isinstance(count_result, dict) else count_result[0]
                 
-                query = f"SELECT * {base_query} ORDER BY LastOpened DESC, CreatedAt DESC"
+                query = f"SELECT * {base_query} ORDER BY CreatedAt DESC, Id DESC"
                 if limit is not None and offset is not None:
                     query += " LIMIT %s OFFSET %s"
                     params.extend([limit, offset])
@@ -148,7 +148,7 @@ class VideoRepository:
 
     def create(self, title, thumbnail, source_url, type_video,
                 definition_lang_code, term_lang_code,
-                user_id=None, public_video_id=None):
+                user_id=None, public_video_id=None, server_source_url=None):
         """Tạo mới 1 video (dùng cho cả public lẫn private)."""
         connection = get_db_connection()
         try:
@@ -157,14 +157,14 @@ class VideoRepository:
                     INSERT INTO Video (
                         Title, Thumbnail, SourceUrl, TypeVideo, CreatedAt,
                         UserId, PublicVideoId,
-                        DefinitionLanguageCode, TermLanguageCode
+                        DefinitionLanguageCode, TermLanguageCode, ServerSourceUrl
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
                 cursor.execute(sql, (
                     title, thumbnail, source_url, type_video,
                     datetime.now().date(), user_id, public_video_id,
-                    definition_lang_code, term_lang_code
+                    definition_lang_code, term_lang_code, server_source_url
                 ))
                 new_id = cursor.lastrowid
             connection.commit()
@@ -189,6 +189,7 @@ class VideoRepository:
                     'type_video':           'TypeVideo',
                     'definition_lang_code': 'DefinitionLanguageCode',
                     'term_lang_code':       'TermLanguageCode',
+                    'server_source_url':    'ServerSourceUrl',
                 }
 
                 set_parts = []

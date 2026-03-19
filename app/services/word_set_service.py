@@ -14,6 +14,12 @@ class WordSetService:
             return None
         return self.word_set_repository.get_all_by_user_id(user.id)
 
+    def get_recent_word_sets(self, uid, limit=3):
+        user = self.user_repository.get_by_uid(uid)
+        if not user:
+            return None
+        return self.word_set_repository.get_recent_by_user_id(user.id, limit)
+
     def get_word_set(self, word_set_id, uid):
         user = self.user_repository.get_by_uid(uid)
         if not user:
@@ -25,7 +31,8 @@ class WordSetService:
         if word_set.user_id != user.id and not word_set.is_public:
             return None, 'forbidden'
 
-        return word_set, None
+        self.word_set_repository.update_last_opened(word_set_id)
+        return self.word_set_repository.get_by_id(word_set_id), None
 
     def create_word_set(self, uid, name, description, is_public, def_lang_code, term_lang_code):
         user = self.user_repository.get_by_uid(uid)
