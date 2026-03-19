@@ -1,6 +1,6 @@
 class Sentence:
     def __init__(self, id=None, term=None, definition=None, created_at=None, 
-                 status=None, mistakes=0, pattern_id=None):
+                 status='unknown', mistakes=0, pattern_id=None):
         self.id = id
         self.term = term
         self.definition = definition
