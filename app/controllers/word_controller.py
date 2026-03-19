@@ -34,6 +34,10 @@ def get_words():
         type: integer
         required: false
         default: 1
+      - name: status
+        in: query
+        type: string
+        required: false
     responses:
       200:
         description: Words retrieved successfully
@@ -48,11 +52,14 @@ def get_words():
     word_set_id = request.args.get('word_set_id', type=int)
     page_size = request.args.get('page_size', type=int)
     page = request.args.get('page', default=1, type=int)
+    status = request.args.get('status', type=str)
 
     if not word_set_id:
         return jsonify({'success': False, 'message': 'word_set_id is required'}), 400
 
-    words, total, error = word_service.get_words_by_word_set(uid, word_set_id, page=page, page_size=page_size)
+    words, total, error = word_service.get_words_by_word_set(
+        uid, word_set_id, page=page, page_size=page_size, status=status
+    )
 
     if error == 'user_not_found':
         return jsonify({'success': False, 'message': 'User not found'}), 404

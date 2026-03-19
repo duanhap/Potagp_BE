@@ -23,7 +23,7 @@ class WordService:
 
         return user, None
 
-    def get_words_by_word_set(self, uid, word_set_id, page=1, page_size=None):
+    def get_words_by_word_set(self, uid, word_set_id, page=1, page_size=None, status=None):
         user, error = self._check_word_set_access(uid, word_set_id, require_owner=False)
         if error:
             return None, None, error
@@ -35,10 +35,10 @@ class WordService:
             return None, None, 'forbidden'
 
         if page_size is None:
-            return self.word_repository.get_all_by_word_set_id(word_set_id), None, None
+            return self.word_repository.get_all_by_word_set_id(word_set_id, status=status), None, None
 
-        total = self.word_repository.count_by_word_set_id(word_set_id)
-        words = self.word_repository.get_page_by_word_set_id(word_set_id, page=page, page_size=page_size)
+        total = self.word_repository.count_by_word_set_id(word_set_id, status=status)
+        words = self.word_repository.get_page_by_word_set_id(word_set_id, page=page, page_size=page_size, status=status)
         return words, total, None
 
     def get_word(self, uid, word_id):

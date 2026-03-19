@@ -16,29 +16,37 @@ class WordRepository:
         finally:
             connection.close()
 
-    def get_all_by_word_set_id(self, word_set_id):
+    def get_all_by_word_set_id(self, word_set_id, status=None):
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT * FROM Word WHERE WordSetId = %s ORDER BY CreatedAt DESC"
-                cursor.execute(sql, (word_set_id,))
+                if status is None:
+                    sql = "SELECT * FROM Word WHERE WordSetId = %s ORDER BY CreatedAt DESC"
+                    cursor.execute(sql, (word_set_id,))
+                else:
+                    sql = "SELECT * FROM Word WHERE WordSetId = %s AND Status = %s ORDER BY CreatedAt DESC"
+                    cursor.execute(sql, (word_set_id, status))
                 results = cursor.fetchall()
                 return [Word.from_dict(row) for row in results]
         finally:
             connection.close()
 
-    def count_by_word_set_id(self, word_set_id):
+    def count_by_word_set_id(self, word_set_id, status=None):
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT COUNT(*) AS Total FROM Word WHERE WordSetId = %s"
-                cursor.execute(sql, (word_set_id,))
+                if status is None:
+                    sql = "SELECT COUNT(*) AS Total FROM Word WHERE WordSetId = %s"
+                    cursor.execute(sql, (word_set_id,))
+                else:
+                    sql = "SELECT COUNT(*) AS Total FROM Word WHERE WordSetId = %s AND Status = %s"
+                    cursor.execute(sql, (word_set_id, status))
                 row = cursor.fetchone()
                 return int(row['Total']) if row and row.get('Total') is not None else 0
         finally:
             connection.close()
 
-    def get_page_by_word_set_id(self, word_set_id, page=1, page_size=20):
+    def get_page_by_word_set_id(self, word_set_id, page=1, page_size=20, status=None):
         page = max(1, int(page or 1))
         page_size = max(1, int(page_size or 20))
         offset = (page - 1) * page_size
@@ -46,13 +54,22 @@ class WordRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = """
-                    SELECT * FROM Word
-                    WHERE WordSetId = %s
-                    ORDER BY CreatedAt DESC
-                    LIMIT %s OFFSET %s
-                """
-                cursor.execute(sql, (word_set_id, page_size, offset))
+                if status is None:
+                    sql = """
+                        SELECT * FROM Word
+                        WHERE WordSetId = %s
+                        ORDER BY CreatedAt DESC
+                        LIMIT %s OFFSET %s
+                    """
+                    cursor.execute(sql, (word_set_id, page_size, offset))
+                else:
+                    sql = """
+                        SELECT * FROM Word
+                        WHERE WordSetId = %s AND Status = %s
+                        ORDER BY CreatedAt DESC
+                        LIMIT %s OFFSET %s
+                    """
+                    cursor.execute(sql, (word_set_id, status, page_size, offset))
                 results = cursor.fetchall()
                 return [Word.from_dict(row) for row in results]
         finally:
