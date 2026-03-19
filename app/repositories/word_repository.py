@@ -27,6 +27,37 @@ class WordRepository:
         finally:
             connection.close()
 
+    def count_by_word_set_id(self, word_set_id):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT COUNT(*) AS Total FROM Word WHERE WordSetId = %s"
+                cursor.execute(sql, (word_set_id,))
+                row = cursor.fetchone()
+                return int(row['Total']) if row and row.get('Total') is not None else 0
+        finally:
+            connection.close()
+
+    def get_page_by_word_set_id(self, word_set_id, page=1, page_size=20):
+        page = max(1, int(page or 1))
+        page_size = max(1, int(page_size or 20))
+        offset = (page - 1) * page_size
+
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = """
+                    SELECT * FROM Word
+                    WHERE WordSetId = %s
+                    ORDER BY CreatedAt DESC
+                    LIMIT %s OFFSET %s
+                """
+                cursor.execute(sql, (word_set_id, page_size, offset))
+                results = cursor.fetchall()
+                return [Word.from_dict(row) for row in results]
+        finally:
+            connection.close()
+
     def _get_or_create_flashcard_game(self, connection, word_set_id):
         with connection.cursor() as cursor:
             cursor.execute(

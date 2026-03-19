@@ -23,18 +23,23 @@ class WordService:
 
         return user, None
 
-    def get_words_by_word_set(self, uid, word_set_id):
+    def get_words_by_word_set(self, uid, word_set_id, page=1, page_size=None):
         user, error = self._check_word_set_access(uid, word_set_id, require_owner=False)
         if error:
-            return None, error
+            return None, None, error
         if not user:
-            return None, 'user_not_found'
+            return None, None, 'user_not_found'
 
         word_set = self.word_set_repository.get_by_id(word_set_id)
         if word_set.user_id != user.id and not word_set.is_public:
-            return None, 'forbidden'
+            return None, None, 'forbidden'
 
-        return self.word_repository.get_all_by_word_set_id(word_set_id), None
+        if page_size is None:
+            return self.word_repository.get_all_by_word_set_id(word_set_id), None, None
+
+        total = self.word_repository.count_by_word_set_id(word_set_id)
+        words = self.word_repository.get_page_by_word_set_id(word_set_id, page=page, page_size=page_size)
+        return words, total, None
 
     def get_word(self, uid, word_id):
         user = self.user_repository.get_by_uid(uid)

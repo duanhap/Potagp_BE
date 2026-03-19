@@ -24,6 +24,16 @@ def get_words():
         in: query
         type: integer
         required: true
+      - name: page_size
+        in: query
+        type: integer
+        required: false
+        description: Enable pagination when provided
+      - name: page
+        in: query
+        type: integer
+        required: false
+        default: 1
     responses:
       200:
         description: Words retrieved successfully
@@ -36,11 +46,13 @@ def get_words():
     """
     uid = request.user['uid']
     word_set_id = request.args.get('word_set_id', type=int)
+    page_size = request.args.get('page_size', type=int)
+    page = request.args.get('page', default=1, type=int)
 
     if not word_set_id:
         return jsonify({'success': False, 'message': 'word_set_id is required'}), 400
 
-    words, error = word_service.get_words_by_word_set(uid, word_set_id)
+    words, total, error = word_service.get_words_by_word_set(uid, word_set_id, page=page, page_size=page_size)
 
     if error == 'user_not_found':
         return jsonify({'success': False, 'message': 'User not found'}), 404
@@ -49,11 +61,21 @@ def get_words():
     if error == 'forbidden':
         return jsonify({'success': False, 'message': 'You do not have permission to access these words'}), 403
 
-    return jsonify({
+    response = {
         'success': True,
         'message': 'Words retrieved successfully',
         'data': [w.to_dict() for w in words]
-    }), 200
+    }
+    if page_size is not None:
+        total_pages = (total + page_size - 1) // page_size if page_size else 0
+        response['pagination'] = {
+            'page': page,
+            'page_size': page_size,
+            'total': total,
+            'total_pages': total_pages
+        }
+
+    return jsonify(response), 200
 
 
 @word_bp.route('/bulk', methods=['POST'])
