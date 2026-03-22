@@ -31,7 +31,16 @@ def get_sentences():
     if page_int < 1 or page_size_int < 1:
         return jsonify({'success': False, 'message': 'page and page_size must be >= 1'}), 400
 
-    result, error = sentence_service.get_sentences_by_pattern(uid, pattern_id_int, page=page_int, page_size=page_size_int)
+    # Check if status filter is provided
+    status = request.args.get('status')
+    
+    if status:
+        result, error = sentence_service.get_sentences_by_pattern_and_status(uid, pattern_id_int, status, page=page_int, page_size=page_size_int)
+        if error == 'invalid_status':
+            return jsonify({'success': False, 'message': 'status must be unknown or known'}), 400
+    else:
+        result, error = sentence_service.get_sentences_by_pattern(uid, pattern_id_int, page=page_int, page_size=page_size_int)
+    
     if error == 'user_not_found':
         return jsonify({'success': False, 'message': 'User not found'}), 404
     if error == 'pattern_not_found':

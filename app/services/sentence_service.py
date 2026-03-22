@@ -24,6 +24,24 @@ class SentenceService:
         total = self.sentence_repository.count_by_pattern_id(pattern_id)
         return {'sentences': sentences, 'total': total}, None
 
+    def get_sentences_by_pattern_and_status(self, uid, pattern_id, status, page=1, page_size=20):
+        user = self.user_repository.get_by_uid(uid)
+        if not user:
+            return None, 'user_not_found'
+
+        pattern = self.sentence_pattern_repository.get_by_id(pattern_id)
+        if not pattern:
+            return None, 'pattern_not_found'
+        if pattern.user_id != user.id and not pattern.is_public:
+            return None, 'forbidden'
+
+        if status not in ['unknown', 'known']:
+            return None, 'invalid_status'
+
+        sentences = self.sentence_repository.get_by_pattern_id_and_status(pattern_id, status, page, page_size)
+        total = self.sentence_repository.count_by_pattern_id_and_status(pattern_id, status)
+        return {'sentences': sentences, 'total': total}, None
+
     def get_sentence(self, sentence_id, uid):
         user = self.user_repository.get_by_uid(uid)
         if not user:

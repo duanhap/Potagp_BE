@@ -38,6 +38,29 @@ class SentenceRepository:
         finally:
             connection.close()
 
+    def get_by_pattern_id_and_status(self, pattern_id, status, page=1, page_size=20):
+        offset = (page - 1) * page_size
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT * FROM Setence WHERE SetencePatternId = %s AND Status = %s ORDER BY CreatedAt DESC LIMIT %s OFFSET %s"
+                cursor.execute(sql, (pattern_id, status, page_size, offset))
+                results = cursor.fetchall()
+                return [Sentence.from_dict(row) for row in results]
+        finally:
+            connection.close()
+
+    def count_by_pattern_id_and_status(self, pattern_id, status):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT COUNT(*) AS total FROM Setence WHERE SetencePatternId = %s AND Status = %s"
+                cursor.execute(sql, (pattern_id, status))
+                result = cursor.fetchone()
+                return result['total'] if result else 0
+        finally:
+            connection.close()
+
     def get_all_by_user_id(self, user_id):
         connection = get_db_connection()
         try:
