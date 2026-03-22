@@ -78,3 +78,15 @@ class SentencePatternRepository:
             return cursor.rowcount > 0
         finally:
             connection.close()
+
+    def update_last_opened(self, sentence_pattern_id):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "UPDATE SetencePattern SET LastOpened = %s WHERE Id = %s"
+                now = datetime.now()
+                cursor.execute(sql, (now, sentence_pattern_id))
+            connection.commit()
+            return cursor.rowcount > 0
+        finally:
+            connection.close()

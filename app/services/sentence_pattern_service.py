@@ -39,6 +39,10 @@ class SentencePatternService:
         if sentence_pattern.user_id != user.id and not sentence_pattern.is_public:
             return None, 'forbidden'
 
+        # Update last_opened in DB when detail is fetched
+        self.sentence_pattern_repository.update_last_opened(sentence_pattern_id)
+        sentence_pattern = self.sentence_pattern_repository.get_by_id(sentence_pattern_id)
+
         return sentence_pattern, None
 
     def create_sentence_pattern(self, uid, name, description, is_public, term_lang_code, def_lang_code):
