@@ -83,3 +83,12 @@ class UserService:
         if not setting:
             return None, 'User not found'
         return setting, None
+
+    def get_top_users(self, limit=1000):
+        return self.user_repository.get_top_users(limit)
+
+    def get_user_rank(self, uid):
+        user = self.user_repository.get_by_uid(uid)
+        if not user:
+            return None
+        return self.user_repository.get_user_rank(uid)
