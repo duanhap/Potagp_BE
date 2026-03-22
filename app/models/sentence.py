@@ -1,6 +1,6 @@
 class Sentence:
     def __init__(self, id=None, term=None, definition=None, created_at=None, 
-                 status='unknown', mistakes=0, pattern_id=None):
+                 status='unknown', mistakes=0, pattern_id=None, last_opened=None):
         self.id = id
         self.term = term
         self.definition = definition
@@ -8,6 +8,7 @@ class Sentence:
         self.status = status
         self.mistakes = mistakes
         self.pattern_id = pattern_id
+        self.last_opened = last_opened
 
     @staticmethod
     def from_dict(data):
@@ -19,12 +20,14 @@ class Sentence:
             created_at=str(data.get('CreatedAt')) if data.get('CreatedAt') else None,
             status=data.get('Status'),
             mistakes=data.get('NumberOfMistakes', 0),
-            pattern_id=data.get('SetencePatternId')
+            pattern_id=data.get('SetencePatternId'),
+            last_opened=str(data.get('LastOpened')) if data.get('LastOpened') else None
         )
 
     def to_dict(self):
         return {
             'id': self.id, 'term': self.term, 'definition': self.definition,
             'created_at': self.created_at, 'status': self.status,
-            'mistakes': self.mistakes, 'pattern_id': self.pattern_id
+            'mistakes': self.mistakes, 'pattern_id': self.pattern_id,
+            'last_opened': self.last_opened
         }

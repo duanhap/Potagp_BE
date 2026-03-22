@@ -93,6 +93,7 @@ CREATE TABLE Setence (
   Status           varchar(255) NOT NULL, 
   NumberOfMistakes int(10), 
   SetencePatternId int(10) NOT NULL, 
+  LastOpened       timestamp NULL, 
   PRIMARY KEY (Id));
 CREATE TABLE WritingGame (
   Id               int(10) NOT NULL AUTO_INCREMENT, 

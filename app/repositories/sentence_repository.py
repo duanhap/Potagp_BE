@@ -38,14 +38,30 @@ class SentenceRepository:
         finally:
             connection.close()
 
+    def get_all_by_user_id(self, user_id):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = """
+                    SELECT s.* FROM Setence s
+                    JOIN SetencePattern sp ON s.SetencePatternId = sp.Id
+                    WHERE sp.UserId = %s
+                    ORDER BY s.CreatedAt DESC
+                """
+                cursor.execute(sql, (user_id,))
+                results = cursor.fetchall()
+                return [Sentence.from_dict(row) for row in results]
+        finally:
+            connection.close()
+
     def create(self, term, definition, status, mistakes, pattern_id):
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "INSERT INTO Setence (Term, Definition, CreatedAt, Status, NumberOfMistakes, SetencePatternId) VALUES (%s, %s, %s, %s, %s, %s)"
+                sql = "INSERT INTO Setence (Term, Definition, CreatedAt, Status, NumberOfMistakes, SetencePatternId, LastOpened) VALUES (%s, %s, %s, %s, %s, %s, %s)"
                 now = datetime.now().date()
                 status = status if status in ['unknown', 'known'] else 'unknown'
-                cursor.execute(sql, (term, definition, now, status, mistakes, pattern_id))
+                cursor.execute(sql, (term, definition, now, status, mistakes, pattern_id, None))
                 connection.commit()
                 return cursor.lastrowid
         finally:
@@ -56,7 +72,7 @@ class SentenceRepository:
         try:
             with connection.cursor() as cursor:
                 now = datetime.now().date()
-                sql = "INSERT INTO Setence (Term, Definition, CreatedAt, Status, NumberOfMistakes, SetencePatternId) VALUES (%s, %s, %s, %s, %s, %s)"
+                sql = "INSERT INTO Setence (Term, Definition, CreatedAt, Status, NumberOfMistakes, SetencePatternId, LastOpened) VALUES (%s, %s, %s, %s, %s, %s, %s)"
                 values = []
                 for sentence in sentences:
                     term = sentence.get('term')
@@ -65,7 +81,7 @@ class SentenceRepository:
                     if status not in ['unknown', 'known']:
                         status = 'unknown'
                     mistakes = sentence.get('mistakes', 0)
-                    values.append((term, definition, now, status, mistakes, pattern_id))
+                    values.append((term, definition, now, status, mistakes, pattern_id, None))
 
                 if not values:
                     return []
@@ -88,13 +104,31 @@ class SentenceRepository:
         finally:
             connection.close()
 
-    def delete(self, sentence_id):
+    def update_last_opened(self, sentence_id):
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "DELETE FROM Setence WHERE Id = %s"
-                cursor.execute(sql, (sentence_id,))
+                sql = "UPDATE Setence SET LastOpened = %s WHERE Id = %s"
+                now = datetime.now()
+                cursor.execute(sql, (now, sentence_id))
                 connection.commit()
                 return cursor.rowcount > 0
+        finally:
+            connection.close()
+
+    def get_recent_sentences_by_user_id(self, user_id, limit=3):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = """
+                    SELECT s.* FROM Setence s
+                    JOIN SetencePattern sp ON s.SetencePatternId = sp.Id
+                    WHERE sp.UserId = %s
+                    ORDER BY s.LastOpened DESC, s.CreatedAt DESC
+                    LIMIT %s
+                """
+                cursor.execute(sql, (user_id, limit))
+                results = cursor.fetchall()
+                return [Sentence.from_dict(row) for row in results]
         finally:
             connection.close()

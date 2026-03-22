@@ -24,6 +24,38 @@ class SentenceService:
         total = self.sentence_repository.count_by_pattern_id(pattern_id)
         return {'sentences': sentences, 'total': total}, None
 
+    def get_sentence(self, sentence_id, uid):
+        user = self.user_repository.get_by_uid(uid)
+        if not user:
+            return None, 'user_not_found'
+
+        sentence = self.sentence_repository.get_by_id(sentence_id)
+        if not sentence:
+            return None, 'not_found'
+
+        pattern = self.sentence_pattern_repository.get_by_id(sentence.pattern_id)
+        if not pattern:
+            return None, 'pattern_not_found'
+        if pattern.user_id != user.id and not pattern.is_public:
+            return None, 'forbidden'
+
+        # Update last_opened when accessed
+        self.sentence_repository.update_last_opened(sentence_id)
+
+        return sentence, None
+
+    def get_recent_sentences(self, uid, limit=3):
+        user = self.user_repository.get_by_uid(uid)
+        if not user:
+            return None
+        return self.sentence_repository.get_recent_sentences_by_user_id(user.id, limit)
+
+    def get_all_sentences(self, uid):
+        user = self.user_repository.get_by_uid(uid)
+        if not user:
+            return None
+        return self.sentence_repository.get_all_by_user_id(user.id)
+
     def create_sentences_bulk(self, uid, pattern_id, sentences):
         user = self.user_repository.get_by_uid(uid)
         if not user:

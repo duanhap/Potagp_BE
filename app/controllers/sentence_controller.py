@@ -56,6 +56,39 @@ def get_sentences():
     }), 200
 
 
+@sentence_bp.route('/<int:sentence_id>', methods=['GET'])
+@token_required
+def get_sentence(sentence_id):
+    uid = request.user['uid']
+    sentence, error = sentence_service.get_sentence(sentence_id, uid)
+
+    if error == 'user_not_found':
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+    if error == 'not_found':
+        return jsonify({'success': False, 'message': 'Sentence not found'}), 404
+    if error == 'pattern_not_found':
+        return jsonify({'success': False, 'message': 'Sentence pattern not found'}), 404
+    if error == 'forbidden':
+        return jsonify({'success': False, 'message': 'You do not have permission to access this sentence'}), 403
+
+    return jsonify({'success': True, 'message': 'Sentence retrieved successfully', 'data': sentence.to_dict()}), 200
+
+
+@sentence_bp.route('/recent', methods=['GET'])
+@token_required
+def get_recent_sentences():
+    uid = request.user['uid']
+    recent_sentences = sentence_service.get_recent_sentences(uid, limit=3)
+    if recent_sentences is None:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+
+    return jsonify({
+        'success': True,
+        'message': 'Recent sentences retrieved successfully',
+        'data': [s.to_dict() for s in recent_sentences]
+    }), 200
+
+
 @sentence_bp.route('', methods=['POST'])
 @token_required
 def create_sentences():
@@ -168,3 +201,18 @@ def delete_sentence(sentence_id):
         return jsonify({'success': False, 'message': 'Delete failed'}), 500
 
     return jsonify({'success': True, 'message': 'Sentence deleted successfully'}), 200
+
+
+@sentence_bp.route('/list', methods=['GET'])
+@token_required
+def get_all_sentences():
+    uid = request.user['uid']
+    sentences = sentence_service.get_all_sentences(uid)
+    if sentences is None:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+
+    return jsonify({
+        'success': True,
+        'message': 'All sentences retrieved successfully',
+        'data': [s.to_dict() for s in sentences]
+    }), 200
