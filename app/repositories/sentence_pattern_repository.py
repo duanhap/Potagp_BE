@@ -26,6 +26,17 @@ class SentencePatternRepository:
         finally:
             connection.close()
 
+    def get_recent_by_user_id(self, user_id, limit=10):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT * FROM SetencePattern WHERE UserId = %s ORDER BY LastOpened DESC, UpdateAt DESC, CreatedAt DESC LIMIT %s"
+                cursor.execute(sql, (user_id, limit))
+                results = cursor.fetchall()
+                return [SentencePattern.from_dict(row) for row in results]
+        finally:
+            connection.close()
+
     def create(self, name, description, is_public, term_lang_code, def_lang_code, user_id):
         connection = get_db_connection()
         try:
@@ -63,6 +74,18 @@ class SentencePatternRepository:
             with connection.cursor() as cursor:
                 sql = "DELETE FROM SetencePattern WHERE Id = %s"
                 cursor.execute(sql, (sentence_pattern_id,))
+            connection.commit()
+            return cursor.rowcount > 0
+        finally:
+            connection.close()
+
+    def update_last_opened(self, sentence_pattern_id):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "UPDATE SetencePattern SET LastOpened = %s WHERE Id = %s"
+                now = datetime.now()
+                cursor.execute(sql, (now, sentence_pattern_id))
             connection.commit()
             return cursor.rowcount > 0
         finally:

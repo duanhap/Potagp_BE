@@ -7,6 +7,7 @@ from app.controllers.word_controller import word_bp
 from app.controllers.video_controller import video_bp
 from app.controllers.subtitle_controller import subtitle_bp
 from app.controllers.sentence_pattern_controller import sentence_pattern_bp
+from app.controllers.sentence_controller import sentence_bp
 
 def create_app():
     app = Flask(__name__)
@@ -27,6 +28,7 @@ def create_app():
     app.register_blueprint(video_bp, url_prefix='/api/videos')
     app.register_blueprint(subtitle_bp, url_prefix='/api/subtitles')
     app.register_blueprint(sentence_pattern_bp, url_prefix='/api/sentence-patterns')
+    app.register_blueprint(sentence_bp, url_prefix='/api/sentences')
 
     @app.route('/')
     def index():

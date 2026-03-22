@@ -22,6 +22,45 @@ def get_sentence_patterns():
     }), 200
 
 
+@sentence_pattern_bp.route('/list', methods=['GET'])
+@token_required
+def get_sentence_patterns_with_recent():
+    uid = request.user['uid']
+    limit = request.args.get('limit', 10)
+    try:
+        limit = int(limit)
+    except ValueError:
+        limit = 10
+
+    all_patterns, recent_patterns = sentence_pattern_service.get_sentence_patterns_with_recent(uid, limit)
+    if all_patterns is None:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+
+    return jsonify({
+        'success': True,
+        'message': 'Sentence patterns retrieved successfully',
+        'data': {
+            'recent': [p.to_dict() for p in recent_patterns],
+            'all': [p.to_dict() for p in all_patterns]
+        }
+    }), 200
+
+
+@sentence_pattern_bp.route('/recent', methods=['GET'])
+@token_required
+def get_recent_sentence_patterns():
+    uid = request.user['uid']
+    recent_patterns = sentence_pattern_service.get_recent_sentence_patterns(uid, limit=3)
+    if recent_patterns is None:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+
+    return jsonify({
+        'success': True,
+        'message': 'Recent sentence patterns retrieved successfully',
+        'data': [p.to_dict() for p in recent_patterns]
+    }), 200
+
+
 @sentence_pattern_bp.route('/<int:sentence_pattern_id>', methods=['GET'])
 @token_required
 def get_sentence_pattern(sentence_pattern_id):
