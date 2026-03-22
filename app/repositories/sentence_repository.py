@@ -132,3 +132,14 @@ class SentenceRepository:
                 return [Sentence.from_dict(row) for row in results]
         finally:
             connection.close()
+
+    def delete(self, sentence_id):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "DELETE FROM Setence WHERE Id = %s"
+                cursor.execute(sql, (sentence_id,))
+                connection.commit()
+                return cursor.rowcount > 0
+        finally:
+            connection.close()
