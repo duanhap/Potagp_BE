@@ -54,7 +54,7 @@ class VideoRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                base_query = "FROM Video WHERE UserId = %s"
+                base_query = "FROM Video WHERE UserId = %s AND PublicVideoId IS NULL"
                 params = [user_id]
                 
                 if type_video:
@@ -66,7 +66,7 @@ class VideoRepository:
                 count_result = cursor.fetchone()
                 total_count = count_result['total'] if isinstance(count_result, dict) else count_result[0]
                 
-                query = f"SELECT * {base_query} ORDER BY LastOpened DESC, CreatedAt DESC"
+                query = f"SELECT * {base_query} ORDER BY CreatedAt DESC, Id DESC"
                 if limit is not None and offset is not None:
                     query += " LIMIT %s OFFSET %s"
                     params.extend([limit, offset])

@@ -229,3 +229,63 @@ def get_user_settings():
         'message': 'User settings retrieved successfully',
         'data': setting.to_dict()
     }), 200
+
+@user_bp.route('/ranking/top', methods=['GET'])
+@token_required
+def get_top_users():
+    """
+    Get top 1000 users by experience points
+    ---
+    tags:
+      - User
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Firebase ID Token (Bearer <token>)
+    responses:
+      200:
+        description: Top users retrieved successfully
+      401:
+        description: Unauthorized (Invalid or missing token)
+    """
+    top_users = user_service.get_top_users(limit=1000)
+    return jsonify({
+        'success': True,
+        'message': 'Top users retrieved successfully',
+        'data': [user.to_dict() for user in top_users]
+    }), 200
+
+@user_bp.route('/ranking/me', methods=['GET'])
+@token_required
+def get_user_rank():
+    """
+    Get current user's rank
+    ---
+    tags:
+      - User
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Firebase ID Token (Bearer <token>)
+    responses:
+      200:
+        description: User rank retrieved successfully
+      404:
+        description: User not found
+      401:
+        description: Unauthorized (Invalid or missing token)
+    """
+    uid = request.user['uid']
+    rank = user_service.get_user_rank(uid)
+    if rank is None:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+
+    return jsonify({
+        'success': True,
+        'message': 'User rank retrieved successfully',
+        'data': {'rank': rank}
+    }), 200

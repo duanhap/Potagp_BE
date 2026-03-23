@@ -137,3 +137,53 @@ class UserRepository:
                 )
         finally:
             connection.close()
+
+    def get_top_users(self, limit=1000):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = """
+                    SELECT * FROM `User`
+                    ORDER BY ExperiencePoints DESC, CreatedAt ASC
+                    LIMIT %s
+                """
+                cursor.execute(sql, (limit,))
+                results = cursor.fetchall()
+                return [User.from_dict(row) for row in results]
+        finally:
+            connection.close()
+
+    def get_user_rank(self, uid):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                # Get the user's experience points and created_at
+                sql_user = "SELECT ExperiencePoints, CreatedAt FROM `User` WHERE Uid = %s"
+                cursor.execute(sql_user, (uid,))
+                user_row = cursor.fetchone()
+                if not user_row:
+                    return None
+
+                user_exp = user_row.get('ExperiencePoints', 0)
+                user_created = user_row.get('CreatedAt')
+
+                # Count users with higher experience points
+                sql_higher = "SELECT COUNT(*) AS higher_count FROM `User` WHERE ExperiencePoints > %s"
+                cursor.execute(sql_higher, (user_exp,))
+                higher_row = cursor.fetchone()
+                higher_count = higher_row.get('higher_count', 0) if higher_row else 0
+
+                # Count users with same experience points but earlier created_at
+                sql_same = """
+                    SELECT COUNT(*) AS same_count FROM `User`
+                    WHERE ExperiencePoints = %s AND CreatedAt < %s
+                """
+                cursor.execute(sql_same, (user_exp, user_created))
+                same_row = cursor.fetchone()
+                same_count = same_row.get('same_count', 0) if same_row else 0
+
+                # Rank is higher_count + same_count + 1
+                rank = higher_count + same_count + 1
+                return rank
+        finally:
+            connection.close()
