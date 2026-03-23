@@ -3,6 +3,7 @@ import urllib.request
 import urllib.parse
 import json
 import os
+from typing import Optional
 
 YOUTUBE_SUB_API_URL = os.getenv('YOUTUBE_SUB_API_URL', 'https://simple-emu-vocal.ngrok-free.app')
 YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
@@ -61,7 +62,7 @@ def is_youtube_video_length_valid(video_id: str, max_minutes: int = 30) -> bool:
 
 
 
-def extract_youtube_video_id(url: str) -> str | None:
+def extract_youtube_video_id(url: str) -> Optional[str]:
     """
     Trích xuất YouTube Video ID từ nhiều dạng URL khác nhau.
 
@@ -158,7 +159,7 @@ def fetch_youtube_info(source_url: str) -> dict:
     }
 
 
-def start_youtube_subtitle_job(source_url: str, term_lang_code: str, definition_lang_code: str) -> str | None:
+def start_youtube_subtitle_job(source_url: str, term_lang_code: str, definition_lang_code: str) -> Optional[str]:
     """
     Gọi External API để start job tạo subtitle.
     Trả về job_id nếu thành công, None nếu thất bại.
@@ -185,7 +186,7 @@ def start_youtube_subtitle_job(source_url: str, term_lang_code: str, definition_
     return None
 
 
-def check_youtube_subtitle_job(job_id: str) -> dict | None:
+def check_youtube_subtitle_job(job_id: str) -> Optional[dict]:
     """
     Kiểm tra tiến trình job từ External API.
     Trả về nguyên response dict từ external API hoặc None nếu lỗi.
