@@ -1,7 +1,8 @@
 class Video:
-    def __init__(self, id=None, title=None, thumbnail=None, source_url=None, 
+    def __init__(self, id=None, title=None, thumbnail=None, source_url=None,
                  last_opened=None, type_video=None, created_at=None, user_id=None,
-                 public_video_id=None, definition_lang_code=None, term_lang_code=None):
+                 public_video_id=None, definition_lang_code=None, term_lang_code=None,
+                 server_source_url=None):
         self.id = id
         self.title = title
         self.thumbnail = thumbnail
@@ -13,6 +14,7 @@ class Video:
         self.public_video_id = public_video_id
         self.definition_lang_code = definition_lang_code
         self.term_lang_code = term_lang_code
+        self.server_source_url = server_source_url
 
     @staticmethod
     def from_dict(data):
@@ -28,7 +30,8 @@ class Video:
             user_id=data.get('UserId'),
             public_video_id=data.get('PublicVideoId'),
             definition_lang_code=data.get('DefinitionLanguageCode'),
-            term_lang_code=data.get('TermLanguageCode')
+            term_lang_code=data.get('TermLanguageCode'),
+            server_source_url=data.get('ServerSourceUrl')
         )
 
     def to_dict(self):
@@ -38,5 +41,6 @@ class Video:
             'type_video': self.type_video, 'created_at': self.created_at,
             'user_id': self.user_id, 'public_video_id': self.public_video_id,
             'definition_lang_code': self.definition_lang_code,
-            'term_lang_code': self.term_lang_code
+            'term_lang_code': self.term_lang_code,
+            'server_source_url': self.server_source_url
         }
