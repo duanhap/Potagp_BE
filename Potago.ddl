@@ -65,7 +65,8 @@ CREATE TABLE StreakDate (
   ProtectedDate          bit(1), 
   ProtectedBy            varchar(255), 
   ExperiencePointsEarned int(10), 
-  StreakId               bigint(19) NOT NULL, 
+  StreakId               bigint(19) NULL, 
+  UserId                 int(10) NOT NULL, 
   PRIMARY KEY (Id));
 CREATE TABLE MatchGame (
   Id            int(10) NOT NULL AUTO_INCREMENT, 
@@ -154,3 +155,4 @@ ALTER TABLE Video ADD CONSTRAINT FKVideo866843 FOREIGN KEY (UserId) REFERENCES `
 ALTER TABLE Video ADD CONSTRAINT FK_Video_Public FOREIGN KEY (PublicVideoId) REFERENCES Video(Id);
 ALTER TABLE Subtitle ADD CONSTRAINT FKSubtitle235120 FOREIGN KEY (VideoId) REFERENCES Video (Id);
 ALTER TABLE Setting ADD CONSTRAINT FKSetting80873 FOREIGN KEY (UserId) REFERENCES `User` (Id);
+ALTER TABLE StreakDate ADD CONSTRAINT FK_StreakDate_User FOREIGN KEY (UserId) REFERENCES `User`(Id);
