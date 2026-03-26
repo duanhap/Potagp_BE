@@ -82,9 +82,9 @@ class SentenceRepository:
         try:
             with connection.cursor() as cursor:
                 sql = "INSERT INTO Setence (Term, Definition, CreatedAt, Status, NumberOfMistakes, SetencePatternId, LastOpened) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-                now = datetime.now().date()
+                now = datetime.now()
                 status = status if status in ['unknown', 'known'] else 'unknown'
-                cursor.execute(sql, (term, definition, now, status, mistakes, pattern_id, None))
+                cursor.execute(sql, (term, definition, now, status, mistakes, pattern_id, now))
                 connection.commit()
                 return cursor.lastrowid
         finally:
@@ -94,7 +94,7 @@ class SentenceRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                now = datetime.now().date()
+                now = datetime.now()
                 sql = "INSERT INTO Setence (Term, Definition, CreatedAt, Status, NumberOfMistakes, SetencePatternId, LastOpened) VALUES (%s, %s, %s, %s, %s, %s, %s)"
                 values = []
                 for sentence in sentences:
@@ -104,7 +104,7 @@ class SentenceRepository:
                     if status not in ['unknown', 'known']:
                         status = 'unknown'
                     mistakes = sentence.get('mistakes', 0)
-                    values.append((term, definition, now, status, mistakes, pattern_id, None))
+                    values.append((term, definition, now, status, mistakes, pattern_id, now))
 
                 if not values:
                     return []

@@ -20,7 +20,13 @@ class WordSetRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT * FROM WordSet WHERE UserId = %s ORDER BY CreatedAt DESC, UpdatedAt DESC"
+                sql = """
+                    SELECT ws.*,
+                           (SELECT COUNT(*) FROM Word WHERE WordSetId = ws.Id) AS amount_of_words
+                    FROM WordSet ws
+                    WHERE ws.UserId = %s
+                    ORDER BY ws.CreatedAt DESC, ws.UpdatedAt DESC
+                """
                 cursor.execute(sql, (user_id,))
                 results = cursor.fetchall()
                 return [WordSet.from_dict(row) for row in results]
@@ -32,9 +38,11 @@ class WordSetRepository:
         try:
             with connection.cursor() as cursor:
                 sql = """
-                    SELECT * FROM WordSet 
-                    WHERE UserId = %s 
-                    ORDER BY LastOpened DESC 
+                    SELECT ws.*,
+                           (SELECT COUNT(*) FROM Word WHERE WordSetId = ws.Id) AS amount_of_words
+                    FROM WordSet ws
+                    WHERE ws.UserId = %s
+                    ORDER BY ws.LastOpened DESC
                     LIMIT %s
                 """
                 cursor.execute(sql, (user_id, limit))
