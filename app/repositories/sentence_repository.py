@@ -8,7 +8,7 @@ class SentenceRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT * FROM Setence WHERE Id = %s"
+                sql = "SELECT s.*, sp.TermLanguageCode, sp.DefinitionLanguageCode FROM Setence s JOIN SetencePattern sp ON s.SetencePatternId = sp.Id WHERE s.Id = %s"
                 cursor.execute(sql, (sentence_id,))
                 result = cursor.fetchone()
                 return Sentence.from_dict(result) if result else None
@@ -20,7 +20,7 @@ class SentenceRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT * FROM Setence WHERE SetencePatternId = %s ORDER BY CreatedAt DESC LIMIT %s OFFSET %s"
+                sql = "SELECT s.*, sp.TermLanguageCode, sp.DefinitionLanguageCode FROM Setence s JOIN SetencePattern sp ON s.SetencePatternId = sp.Id WHERE s.SetencePatternId = %s ORDER BY s.CreatedAt DESC LIMIT %s OFFSET %s"
                 cursor.execute(sql, (pattern_id, page_size, offset))
                 results = cursor.fetchall()
                 return [Sentence.from_dict(row) for row in results]
@@ -43,7 +43,7 @@ class SentenceRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT * FROM Setence WHERE SetencePatternId = %s AND Status = %s ORDER BY CreatedAt DESC LIMIT %s OFFSET %s"
+                sql = "SELECT s.*, sp.TermLanguageCode, sp.DefinitionLanguageCode FROM Setence s JOIN SetencePattern sp ON s.SetencePatternId = sp.Id WHERE s.SetencePatternId = %s AND s.Status = %s ORDER BY s.CreatedAt DESC LIMIT %s OFFSET %s"
                 cursor.execute(sql, (pattern_id, status, page_size, offset))
                 results = cursor.fetchall()
                 return [Sentence.from_dict(row) for row in results]
@@ -66,7 +66,7 @@ class SentenceRepository:
         try:
             with connection.cursor() as cursor:
                 sql = """
-                    SELECT s.* FROM Setence s
+                    SELECT s.*, sp.TermLanguageCode, sp.DefinitionLanguageCode FROM Setence s
                     JOIN SetencePattern sp ON s.SetencePatternId = sp.Id
                     WHERE sp.UserId = %s
                     ORDER BY s.CreatedAt DESC
@@ -144,7 +144,7 @@ class SentenceRepository:
         try:
             with connection.cursor() as cursor:
                 sql = """
-                    SELECT s.* FROM Setence s
+                    SELECT s.*, sp.TermLanguageCode, sp.DefinitionLanguageCode FROM Setence s
                     JOIN SetencePattern sp ON s.SetencePatternId = sp.Id
                     WHERE sp.UserId = %s
                     ORDER BY s.LastOpened DESC, s.CreatedAt DESC
