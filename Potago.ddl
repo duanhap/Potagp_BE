@@ -42,8 +42,8 @@ CREATE TABLE Word (
   CreatedAt       date NOT NULL, 
   Status          varchar(255) NOT NULL, 
   WordSetId       bigint(19), 
-  FlashcardGameId bigint(19) NOT NULL, 
-  MatchGameId     int(10) NOT NULL, 
+  FlashcardGameId bigint(19)  NULL, 
+  MatchGameId     int(10)  NULL, 
   PRIMARY KEY (Id));
 CREATE TABLE FlashcardGame (
   Id        bigint(19) NOT NULL AUTO_INCREMENT, 
@@ -139,6 +139,20 @@ CREATE TABLE Subtitle (
   Translation   TEXT;
   VideoId       int(10) NOT NULL, 
   PRIMARY KEY (Id));
+CREATE TABLE Flashcard (
+  Id BIGINT(19) NOT NULL AUTO_INCREMENT,
+  `Order` BIGINT(19) NOT NULL,
+  WordId BIGINT(19) NOT NULL,
+  FlashcardGameId BIGINT(19) NOT NULL,
+
+  PRIMARY KEY (Id),
+
+  CONSTRAINT FK_Flashcard_Word 
+    FOREIGN KEY (WordId) REFERENCES Word(Id),
+
+  CONSTRAINT FK_Flashcard_Game 
+    FOREIGN KEY (FlashcardGameId) REFERENCES FlashcardGame(Id)
+);
 ALTER TABLE Streak ADD CONSTRAINT FKStreak329675 FOREIGN KEY (UserId) REFERENCES `User` (Id);
 ALTER TABLE WordSet ADD CONSTRAINT FKWordSet74244 FOREIGN KEY (UserId) REFERENCES `User` (Id);
 ALTER TABLE FlashcardGame ADD CONSTRAINT FKFlashcardG699910 FOREIGN KEY (WordSetId) REFERENCES WordSet (Id);
