@@ -48,6 +48,7 @@ CREATE TABLE Word (
 CREATE TABLE FlashcardGame (
   Id        bigint(19) NOT NULL AUTO_INCREMENT, 
   `Mode`    varchar(255) NOT NULL, 
+  Filter    varchar(255) NULL DEFAULT 'all',
   UpdatedAt date, 
   WordSetId bigint(19) NOT NULL, 
   PRIMARY KEY (Id));
