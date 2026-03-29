@@ -13,24 +13,25 @@ class FlashcardGameRepository:
         finally:
             connection.close()
 
-    def create(self, word_set_id, mode):
+    def create(self, word_set_id, mode, filter='all'):
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
                 from datetime import datetime
-                sql = "INSERT INTO FlashcardGame (`Mode`, UpdatedAt, WordSetId) VALUES (%s, %s, %s)"
-                cursor.execute(sql, (mode, datetime.now().date(), word_set_id))
+                sql = "INSERT INTO FlashcardGame (`Mode`, Filter, UpdatedAt, WordSetId) VALUES (%s, %s, %s, %s)"
+                cursor.execute(sql, (mode, filter, datetime.now().date(), word_set_id))
             connection.commit()
             return cursor.lastrowid
         finally:
             connection.close()
 
-    def update_mode(self, game_id, mode):
+    def update_game_settings(self, game_id, mode, filter):
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "UPDATE FlashcardGame SET `Mode` = %s WHERE Id = %s"
-                cursor.execute(sql, (mode, game_id))
+                from datetime import datetime
+                sql = "UPDATE FlashcardGame SET `Mode` = %s, Filter = %s, UpdatedAt = %s WHERE Id = %s"
+                cursor.execute(sql, (mode, filter, datetime.now().date(), game_id))
             connection.commit()
             return cursor.rowcount > 0
         finally:

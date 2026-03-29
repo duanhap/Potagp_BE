@@ -39,6 +39,13 @@ def get_flashcards():
         type: integer
         required: false
         default: 20
+      - name: filter
+        in: query
+        type: string
+        required: false
+        default: all
+        description: Filter by word status (all, known, unknown)
+        enum: [all, known, unknown]
     responses:
       200:
         description: Flashcards retrieved successfully
@@ -54,6 +61,9 @@ def get_flashcards():
     mode = request.args.get('mode', type=str)
     current_word_id = request.args.get('current_word_id', type=int)
     size = request.args.get('size', default=20, type=int)
+    filter_val = request.args.get('filter', default='all', type=str)
+
+    if not filter_val: filter_val = 'all'
 
     if not word_set_id or not mode:
         return jsonify({'success': False, 'message': 'word_set_id and mode are required'}), 400
@@ -61,8 +71,11 @@ def get_flashcards():
     if mode not in ['normal', 'random']:
         return jsonify({'success': False, 'message': 'mode must be normal or random'}), 400
 
+    if filter_val.lower() not in ['all', 'known', 'unknown']:
+        return jsonify({'success': False, 'message': 'filter must be All, known or unknown'}), 400
+
     data, error = flashcard_service.get_flashcards(
-        uid, word_set_id, mode, current_word_id, size
+        uid, word_set_id, mode, filter_val, current_word_id, size
     )
 
     if error == 'user_not_found':
