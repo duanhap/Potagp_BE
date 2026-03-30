@@ -65,6 +65,14 @@ class FlashcardService:
             current_filter = requested_filter
             needs_shuffle = True
 
+        # Check if current_word_id is the last word in the current session
+        if current_word_id:
+            # existing_flashcards is sorted by Order ASC from repo
+            active_fcs_before = [fc for fc in existing_flashcards if fc.order > 0]
+            if active_fcs_before and active_fcs_before[-1].word_id == current_word_id:
+                needs_shuffle = True
+                current_word_id = None # Start fresh from index 0 of the new session
+
         # Check if we have no active cards but words exist (to recover from buggy state)
         active_fcs = [fc for fc in existing_flashcards if fc.order > 0]
         if not needs_shuffle and not active_fcs and words:
