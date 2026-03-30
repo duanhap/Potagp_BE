@@ -87,7 +87,16 @@ def get_sentence(sentence_id):
 @token_required
 def get_recent_sentences():
     uid = request.user['uid']
-    recent_sentences = sentence_service.get_recent_sentences(uid, limit=3)
+
+    limit_str = request.args.get('limit', '3')
+    try:
+        limit = int(limit_str)
+        if limit < 1:
+            return jsonify({'success': False, 'message': 'limit must be >= 1'}), 400
+    except ValueError:
+        return jsonify({'success': False, 'message': 'limit must be an integer'}), 400
+
+    recent_sentences = sentence_service.get_recent_sentences(uid, limit=limit)
     if recent_sentences is None:
         return jsonify({'success': False, 'message': 'User not found'}), 404
 

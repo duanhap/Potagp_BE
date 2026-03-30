@@ -1,7 +1,7 @@
 class WordSet:
-    def __init__(self, id=None, name=None, description=None, created_at=None, 
-                 is_public=False, def_lang_code=None, term_lang_code=None, 
-                 updated_at=None, last_opened=None, user_id=None):
+    def __init__(self, id=None, name=None, description=None, created_at=None,
+                 is_public=False, def_lang_code=None, term_lang_code=None,
+                 updated_at=None, last_opened=None, user_id=None, amount_of_words=0):
         self.id = id
         self.name = name
         self.description = description
@@ -12,6 +12,7 @@ class WordSet:
         self.updated_at = updated_at
         self.last_opened = last_opened
         self.user_id = user_id
+        self.amount_of_words = amount_of_words
 
     @staticmethod
     def from_dict(data):
@@ -26,7 +27,8 @@ class WordSet:
             term_lang_code=data.get('TermLanguageCode'),
             updated_at=str(data.get('UpdatedAt')) if data.get('UpdatedAt') else None,
             last_opened=str(data.get('LastOpened')) if data.get('LastOpened') else None,
-            user_id=data.get('UserId')
+            user_id=data.get('UserId'),
+            amount_of_words=data.get('amount_of_words', 0)
         )
 
     def to_dict(self):
@@ -35,5 +37,5 @@ class WordSet:
             'created_at': self.created_at, 'is_public': self.is_public,
             'def_lang_code': self.def_lang_code, 'term_lang_code': self.term_lang_code,
             'updated_at': self.updated_at, 'last_opened': self.last_opened,
-            'user_id': self.user_id
+            'user_id': self.user_id, 'amount_of_words': self.amount_of_words
         }
