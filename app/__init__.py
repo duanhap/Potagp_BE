@@ -9,6 +9,7 @@ from app.controllers.subtitle_controller import subtitle_bp
 from app.controllers.sentence_pattern_controller import sentence_pattern_bp
 from app.controllers.sentence_controller import sentence_bp
 from app.controllers.flashcard_controller import flashcard_bp
+from app.controllers.item_controller import item_bp
 from app.controllers.reward_controller import reward_bp
 
 def create_app():
@@ -32,6 +33,7 @@ def create_app():
     app.register_blueprint(sentence_pattern_bp, url_prefix='/api/sentence-patterns')
     app.register_blueprint(sentence_bp, url_prefix='/api/sentences')
     app.register_blueprint(flashcard_bp, url_prefix='/api/flashcards')
+    app.register_blueprint(item_bp, url_prefix='/api/users/items')
     app.register_blueprint(reward_bp, url_prefix='/api/rewards')
 
     @app.route('/')
