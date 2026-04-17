@@ -1,4 +1,6 @@
 from app.utils.database import get_db_connection
+from app.models.streak import Streak
+from app.models.streak_date import StreakDate
 from datetime import date
 
 
@@ -122,5 +124,29 @@ class StreakRepository:
                 cursor.execute(sql, (user_id,))
                 row = cursor.fetchone()
                 return row['ExperienceGoal'] if row else 15
+        finally:
+            connection.close()
+
+    # ── API-facing methods (trả về model objects) ─────────────
+
+    def get_current_streak_model(self, user_id):
+        """Trả về Streak model đang active, hoặc None."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT * FROM Streak WHERE UserId = %s AND CurentStreak = TRUE LIMIT 1"
+                cursor.execute(sql, (user_id,))
+                return Streak.from_dict(cursor.fetchone())
+        finally:
+            connection.close()
+
+    def get_streak_date_today_model(self, user_id):
+        """Trả về StreakDate model của hôm nay, hoặc None."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT * FROM StreakDate WHERE UserId = %s AND `Date` = %s LIMIT 1"
+                cursor.execute(sql, (user_id, date.today()))
+                return StreakDate.from_dict(cursor.fetchone())
         finally:
             connection.close()

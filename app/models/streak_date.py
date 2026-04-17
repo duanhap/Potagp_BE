@@ -12,10 +12,12 @@ class StreakDate:
     @staticmethod
     def from_dict(data):
         if not data: return None
+        raw = data.get('ProtectedDate')
+        protected = (raw != b'\x00') if isinstance(raw, bytes) else bool(raw)
         return StreakDate(
             id=data.get('Id'),
             date=str(data.get('Date')) if data.get('Date') else None,
-            protected_date=bool(data.get('ProtectedDate')),
+            protected_date=protected,
             protected_by=data.get('ProtectedBy'),
             xp_earned=data.get('ExperiencePointsEarned', 0),
             streak_id=data.get('StreakId'),
