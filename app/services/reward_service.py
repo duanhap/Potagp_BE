@@ -1,5 +1,6 @@
 from app.repositories.reward_repository import RewardRepository
 from app.repositories.user_repository import UserRepository
+from app.services.streak_service import StreakService
 
 # Bảng cấu hình phần thưởng theo action
 REWARD_CONFIG = {
@@ -14,10 +15,11 @@ class RewardService:
     def __init__(self):
         self.reward_repository = RewardRepository()
         self.user_repository = UserRepository()
+        self.streak_service = StreakService()
 
     def claim_reward(self, uid, action, hack_experience=False, super_experience=False):
         """
-        Tính và cộng phần thưởng cho user.
+        Tính và cộng phần thưởng cho user, sau đó xử lý streak hàng ngày.
 
         Multiplier XP:
           - hackExperience = True  → x2
@@ -26,7 +28,7 @@ class RewardService:
 
         Returns:
           (result_dict, error_string)
-          result_dict gồm: experience_earned, diamond_earned, new_experience, new_diamond
+          result_dict gồm: experience_earned, diamond_earned, new_experience, new_diamond, streak
         """
         config = REWARD_CONFIG.get(action)
         if config is None:
@@ -53,9 +55,14 @@ class RewardService:
             return None, 'update_failed'
 
         new_experience, new_diamond = result
+
+        # Xử lý streak sau khi cộng XP thành công
+        streak_result = self.streak_service.process_streak(user.id, experience_earned)
+
         return {
             'experience_earned': experience_earned,
             'diamond_earned': diamond,
             'new_experience': new_experience,
             'new_diamond': new_diamond,
+            'streak': streak_result,
         }, None
