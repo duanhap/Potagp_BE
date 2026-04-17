@@ -9,11 +9,13 @@ class Streak:
     @staticmethod
     def from_dict(data):
         if not data: return None
+        raw = data.get('CurentStreak')
+        current = (raw != b'\x00') if isinstance(raw, bytes) else bool(raw)
         return Streak(
             id=data.get('Id'),
             length_streak=data.get('LenghtStreak', 0),
             start_date=data.get('StartDate', 0),
-            current_streak=bool(data.get('CurentStreak')),
+            current_streak=current,
             user_id=data.get('UserId')
         )
 
