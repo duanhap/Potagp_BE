@@ -55,7 +55,7 @@ class MatchGameRepository:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT MIN(CompletedTime) AS best_time, CreatedAt
+                    SELECT CompletedTime AS best_time, CreatedAt
                     FROM MatchGame
                     WHERE WordSetId = %s AND CompletedTime IS NOT NULL
                     ORDER BY CompletedTime ASC
