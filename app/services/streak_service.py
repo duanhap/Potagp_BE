@@ -17,6 +17,16 @@ class StreakService:
     def __init__(self):
         self.streak_repo = StreakRepository()
 
+    def get_current_streak(self, uid, user_id):
+        """Lấy Streak đang active của user. Trả về (streak_model, error)."""
+        streak = self.streak_repo.get_current_streak_model(user_id)
+        return streak, None
+
+    def get_streak_date_today(self, uid, user_id):
+        """Lấy StreakDate hôm nay của user. Trả về (streak_date_model, error)."""
+        streak_date = self.streak_repo.get_streak_date_today_model(user_id)
+        return streak_date, None
+
     def process_streak(self, user_id, experience_earned):
         """
         Xử lý StreakDate và Streak sau khi user nhận thưởng.
