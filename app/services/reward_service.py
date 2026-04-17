@@ -7,7 +7,15 @@ REWARD_CONFIG = {
     'learning-video': {
         'base_experience': 15,
         'diamond': 20,
-    }
+    },
+    'playing-match-game': {
+        'base_experience': 5,
+        'diamond': 5,
+    },
+    'playing-writing-game': {
+        'base_experience': 15,
+        'diamond': 10,
+    },
 }
 
 
