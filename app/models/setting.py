@@ -9,9 +9,17 @@ class Setting:
     @staticmethod
     def from_dict(data):
         if not data: return None
+        raw_notification = data.get('Notification')
+        # MySQL bit(1) trả về bytes b'\x01' hoặc b'\x00'
+        if isinstance(raw_notification, (bytes, bytearray)):
+            notification = raw_notification != b'\x00'
+        elif isinstance(raw_notification, int):
+            notification = bool(raw_notification)
+        else:
+            notification = bool(raw_notification)
         return Setting(
             id=data.get('Id'),
-            notification=bool(data.get('Notification')),
+            notification=notification,
             experience_goal=data.get('ExperienceGoal', 15),
             language=data.get('Language'),
             user_id=data.get('UserId')
