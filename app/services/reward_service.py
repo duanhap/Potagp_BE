@@ -50,9 +50,9 @@ class RewardService:
         diamond = config['diamond']
 
         if super_experience:
-            multiplier = 3
-        elif hack_experience:
             multiplier = 2
+        elif hack_experience:
+            multiplier = 3
         else:
             multiplier = 1
 
