@@ -199,9 +199,10 @@ class WordRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "DELETE FROM Word WHERE Id = %s"
-                cursor.execute(sql, (word_id,))
+                cursor.execute("DELETE FROM Flashcard WHERE WordId = %s", (word_id,))
+                cursor.execute("DELETE FROM Word WHERE Id = %s", (word_id,))
+                deleted_word = cursor.rowcount > 0
             connection.commit()
-            return cursor.rowcount > 0
+            return deleted_word
         finally:
             connection.close()
