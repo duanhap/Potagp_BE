@@ -86,10 +86,21 @@ class WordSetRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "DELETE FROM WordSet WHERE Id = %s"
-                cursor.execute(sql, (word_set_id,))
+                cursor.execute(
+                    """
+                    DELETE fc FROM Flashcard fc
+                    INNER JOIN FlashcardGame fcg ON fc.FlashcardGameId = fcg.Id
+                    WHERE fcg.WordSetId = %s
+                    """,
+                    (word_set_id,),
+                )
+                cursor.execute("DELETE FROM Word WHERE WordSetId = %s", (word_set_id,))
+                cursor.execute("DELETE FROM FlashcardGame WHERE WordSetId = %s", (word_set_id,))
+                cursor.execute("DELETE FROM MatchGame WHERE WordSetId = %s", (word_set_id,))
+                cursor.execute("DELETE FROM WordSet WHERE Id = %s", (word_set_id,))
+                deleted = cursor.rowcount > 0
             connection.commit()
-            return cursor.rowcount > 0
+            return deleted
         finally:
             connection.close()
 
