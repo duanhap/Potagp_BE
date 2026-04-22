@@ -33,8 +33,8 @@ class Sentence:
         return {
             'id': self.id, 'term': self.term, 'definition': self.definition,
             'created_at': self.created_at, 'status': self.status,
-            'mistakes': self.mistakes, 'pattern_id': self.pattern_id,
+            'number_of_mistakes': self.mistakes, 'sentence_pattern_id': self.pattern_id,
             'last_opened': self.last_opened,
-            'termLanguageCode': self.term_language_code,
-            'definitionLanguageCode': self.definition_language_code
+            'term_language_code': self.term_language_code,
+            'definition_language_code': self.definition_language_code
         }
