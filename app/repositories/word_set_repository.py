@@ -9,7 +9,12 @@ class WordSetRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT * FROM WordSet WHERE Id = %s"
+                sql = """
+                    SELECT ws.*,
+                           (SELECT COUNT(*) FROM Word WHERE WordSetId = ws.Id) AS amount_of_words
+                    FROM WordSet ws
+                    WHERE ws.Id = %s
+                """
                 cursor.execute(sql, (word_set_id,))
                 result = cursor.fetchone()
                 return WordSet.from_dict(result) if result else None
