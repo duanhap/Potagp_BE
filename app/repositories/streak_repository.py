@@ -150,3 +150,52 @@ class StreakRepository:
                 return StreakDate.from_dict(cursor.fetchone())
         finally:
             connection.close()
+
+    def get_all_active_streaks(self):
+        """Lấy danh sách tất cả các streak đang hoạt động."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT * FROM Streak WHERE CurentStreak = TRUE"
+                cursor.execute(sql)
+                return cursor.fetchall()
+        finally:
+            connection.close()
+
+    def get_streak_date_by_date(self, user_id, target_date):
+        """Lấy StreakDate của một ngày cụ thể."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT * FROM StreakDate WHERE UserId = %s AND `Date` = %s LIMIT 1"
+                cursor.execute(sql, (user_id, target_date))
+                return cursor.fetchone()
+        finally:
+            connection.close()
+
+    def set_streak_inactive(self, streak_id):
+        """Tắt trạng thái active của streak (khi bị đứt chuỗi)."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "UPDATE Streak SET CurentStreak = FALSE WHERE Id = %s"
+                cursor.execute(sql, (streak_id,))
+                connection.commit()
+                return cursor.rowcount > 0
+        finally:
+            connection.close()
+
+    def create_protected_streak_date(self, user_id, target_date, protected_by, streak_id):
+        """Tạo StreakDate mới cho trường hợp dùng item bảo vệ (khi user không online ngày đó)."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = """
+                    INSERT INTO StreakDate (`Date`, ProtectedDate, ProtectedBy, ExperiencePointsEarned, StreakId, UserId)
+                    VALUES (%s, TRUE, %s, 0, %s, %s)
+                """
+                cursor.execute(sql, (target_date, protected_by, streak_id, user_id))
+                connection.commit()
+                return cursor.lastrowid
+        finally:
+            connection.close()
