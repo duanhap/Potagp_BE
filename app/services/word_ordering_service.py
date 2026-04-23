@@ -47,16 +47,23 @@ class WordOrderingService:
         """
         Lưu kết quả game:
         - Tăng NumberOfMistakes cho câu sai
-        - Gọi RewardService để cộng XP + Diamond + xử lý streak (giống MatchGame)
+        - Cập nhật LastOpened cho tất cả câu đã làm
+        - Gọi RewardService để cộng XP + Diamond + xử lý streak
         - Cập nhật WritingGame
         """
         user, _, error = self._check_access(uid, pattern_id)
         if error:
             return None, error
 
+        all_sentence_ids = correct_sentence_ids + wrong_sentence_ids
+
         # Tăng mistakes cho câu sai
         for sid in wrong_sentence_ids:
             self.sentence_repo.increment_mistakes(sid)
+
+        # Cập nhật LastOpened cho tất cả câu đã làm
+        for sid in all_sentence_ids:
+            self.sentence_repo.update_last_opened(sid)
 
         correct_count = len(correct_sentence_ids)
         total_count = correct_count + len(wrong_sentence_ids)
