@@ -17,7 +17,7 @@ REWARD_CONFIG = {
         'diamond': 10,
     },
     'playing-word-ordering': {
-        'base_experience': 6,
+        'base_experience': 10,
         'diamond': 5,
     },
 }
