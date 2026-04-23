@@ -131,7 +131,12 @@ def update_sentence_pattern(sentence_pattern_id):
 @token_required
 def delete_sentence_pattern(sentence_pattern_id):
     uid = request.user['uid']
-    error = sentence_pattern_service.delete_sentence_pattern(sentence_pattern_id, uid)
+    try:
+        error = sentence_pattern_service.delete_sentence_pattern(sentence_pattern_id, uid)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': f'Internal error: {str(e)}'}), 500
 
     if error == 'user_not_found':
         return jsonify({'success': False, 'message': 'User not found'}), 404
