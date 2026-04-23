@@ -72,7 +72,7 @@ CREATE TABLE StreakDate (
 CREATE TABLE MatchGame (
   Id            int(10) NOT NULL AUTO_INCREMENT, 
   CreatedAt     timestamp NOT NULL, 
-  CompletedTime int(10), 
+  CompletedTime float, 
   WordSetId     bigint(19) NOT NULL, 
   PRIMARY KEY (Id));
 CREATE TABLE SetencePattern (

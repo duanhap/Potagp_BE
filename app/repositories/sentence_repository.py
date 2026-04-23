@@ -156,6 +156,35 @@ class SentenceRepository:
         finally:
             connection.close()
 
+    def increment_mistakes(self, sentence_id):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "UPDATE Setence SET NumberOfMistakes = COALESCE(NumberOfMistakes, 0) + 1 WHERE Id = %s"
+                cursor.execute(sql, (sentence_id,))
+                connection.commit()
+                return cursor.rowcount > 0
+        finally:
+            connection.close()
+
+    def get_random_by_pattern_id(self, pattern_id, limit=5):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = """
+                    SELECT s.*, sp.TermLanguageCode, sp.DefinitionLanguageCode
+                    FROM Setence s
+                    JOIN SetencePattern sp ON s.SetencePatternId = sp.Id
+                    WHERE s.SetencePatternId = %s
+                    ORDER BY RAND()
+                    LIMIT %s
+                """
+                cursor.execute(sql, (pattern_id, limit))
+                results = cursor.fetchall()
+                return [Sentence.from_dict(row) for row in results]
+        finally:
+            connection.close()
+
     def delete(self, sentence_id):
         connection = get_db_connection()
         try:

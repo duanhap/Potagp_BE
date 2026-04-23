@@ -15,6 +15,7 @@ from app.controllers.item_controller import item_bp
 from app.controllers.match_game_controller import match_game_bp
 from app.controllers.reward_controller import reward_bp
 from app.controllers.streak_controller import streak_bp
+from app.controllers.word_ordering_controller import word_ordering_bp
 
 def create_app():
     app = Flask(__name__)
@@ -49,6 +50,7 @@ def create_app():
     app.register_blueprint(match_game_bp, url_prefix='/api/match-games')
     app.register_blueprint(reward_bp, url_prefix='/api/rewards')
     app.register_blueprint(streak_bp, url_prefix='/api/streaks')
+    app.register_blueprint(word_ordering_bp, url_prefix='/api/word-ordering')
 
     @app.route('/')
     def index():
