@@ -1,17 +1,29 @@
 from flask import Flask
 from flask_cors import CORS
 from flasgger import Swagger
+from flask_apscheduler import APScheduler
 from app.controllers.user_controller import user_bp
-from app.controllers.word_set_controller import word_set_bp
-from app.controllers.word_controller import word_bp
-from app.controllers.video_controller import video_bp
-from app.controllers.subtitle_controller import subtitle_bp
-from app.controllers.sentence_pattern_controller import sentence_pattern_bp
-from app.controllers.sentence_controller import sentence_bp
+# ... (các imports BP khác)
+from app.controllers.streak_controller import streak_bp
+
+scheduler = APScheduler()
 
 def create_app():
     app = Flask(__name__)
     CORS(app)
+
+    # Configure Scheduler
+    app.config['SCHEDULER_API_ENABLED'] = True
+    scheduler.init_app(app)
+    scheduler.start()
+
+    # Đăng ký Job kiểm tra streak lúc 0h00 hàng ngày (Giờ VN)
+    # Vì Server Render đặt ở Singapore (GMT+8), ta chạy lúc 23:00 (GMT+7)
+    @scheduler.task('cron', id='check_daily_streak', hour=23, minute=0)
+    def daily_streak_job():
+        with app.app_context():
+            from app.tasks.streak_task import run_midnight_streak_check
+            run_midnight_streak_check()
 
     # Configure Swagger
     app.config['SWAGGER'] = {
@@ -29,6 +41,9 @@ def create_app():
     app.register_blueprint(subtitle_bp, url_prefix='/api/subtitles')
     app.register_blueprint(sentence_pattern_bp, url_prefix='/api/sentence-patterns')
     app.register_blueprint(sentence_bp, url_prefix='/api/sentences')
+    app.register_blueprint(flashcard_bp, url_prefix='/api/flashcards')
+    app.register_blueprint(reward_bp, url_prefix='/api/rewards')
+    app.register_blueprint(streak_bp, url_prefix='/api/streaks')
 
     @app.route('/')
     def index():

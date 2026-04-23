@@ -5,3 +5,4 @@ firebase-admin==6.5.0
 python-dotenv==1.0.1
 gunicorn==22.0.0
 flasgger==0.9.7.1
+Flask-APScheduler==1.13.1

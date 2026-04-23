@@ -1,6 +1,7 @@
 class Sentence:
     def __init__(self, id=None, term=None, definition=None, created_at=None, 
-                 status='unknown', mistakes=0, pattern_id=None, last_opened=None):
+                 status='unknown', mistakes=0, pattern_id=None, last_opened=None,
+                 term_language_code=None, definition_language_code=None):
         self.id = id
         self.term = term
         self.definition = definition
@@ -9,6 +10,8 @@ class Sentence:
         self.mistakes = mistakes
         self.pattern_id = pattern_id
         self.last_opened = last_opened
+        self.term_language_code = term_language_code
+        self.definition_language_code = definition_language_code
 
     @staticmethod
     def from_dict(data):
@@ -21,7 +24,9 @@ class Sentence:
             status=data.get('Status'),
             mistakes=data.get('NumberOfMistakes', 0),
             pattern_id=data.get('SetencePatternId'),
-            last_opened=str(data.get('LastOpened')) if data.get('LastOpened') else None
+            last_opened=str(data.get('LastOpened')) if data.get('LastOpened') else None,
+            term_language_code=data.get('TermLanguageCode'),
+            definition_language_code=data.get('DefinitionLanguageCode')
         )
 
     def to_dict(self):
@@ -29,5 +34,7 @@ class Sentence:
             'id': self.id, 'term': self.term, 'definition': self.definition,
             'created_at': self.created_at, 'status': self.status,
             'mistakes': self.mistakes, 'pattern_id': self.pattern_id,
-            'last_opened': self.last_opened
+            'last_opened': self.last_opened,
+            'termLanguageCode': self.term_language_code,
+            'definitionLanguageCode': self.definition_language_code
         }
