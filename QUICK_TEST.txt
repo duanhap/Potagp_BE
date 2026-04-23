@@ -1,0 +1,127 @@
+========================================
+QUICK TEST - Copy & Paste Commands
+========================================
+
+⚠️ TRƯỚC KHI CHẠY:
+1. Thay YOUR_FIREBASE_TOKEN bằng token thật
+2. Thay pattern_id=1 bằng ID có trong database của bạn
+3. Đảm bảo backend đang chạy: python run.py
+
+========================================
+TEST 1: Lấy câu CHƯA THUỘC
+========================================
+
+curl -X GET "http://localhost:8002/api/sentences?pattern_id=1&status=unknown" -H "Authorization: Bearer YOUR_FIREBASE_TOKEN" -H "Content-Type: application/json"
+
+
+========================================
+TEST 2: Lấy câu ĐÃ THUỘC
+========================================
+
+curl -X GET "http://localhost:8002/api/sentences?pattern_id=1&status=known" -H "Authorization: Bearer YOUR_FIREBASE_TOKEN" -H "Content-Type: application/json"
+
+
+========================================
+TEST 3: Cập nhật câu thành ĐÃ THUỘC (trả lời đúng)
+========================================
+
+curl -X PUT "http://localhost:8002/api/sentences/1" -H "Authorization: Bearer YOUR_FIREBASE_TOKEN" -H "Content-Type: application/json" -d "{\"term\":\"Where is the nearest station?\",\"definition\":\"Ga gần nhất ở đâu?\",\"status\":\"known\",\"mistakes\":0}"
+
+
+========================================
+TEST 4: Tăng số lần SAI (trả lời sai)
+========================================
+
+curl -X PUT "http://localhost:8002/api/sentences/1" -H "Authorization: Bearer YOUR_FIREBASE_TOKEN" -H "Content-Type: application/json" -d "{\"term\":\"Where is the nearest station?\",\"definition\":\"Ga gần nhất ở đâu?\",\"status\":\"unknown\",\"mistakes\":1}"
+
+
+========================================
+WINDOWS POWERSHELL VERSION
+========================================
+
+# TEST 1: Lấy câu chưa thuộc
+Invoke-RestMethod -Uri "http://localhost:8002/api/sentences?pattern_id=1&status=unknown" -Method Get -Headers @{"Authorization"="Bearer YOUR_FIREBASE_TOKEN";"Content-Type"="application/json"} | ConvertTo-Json -Depth 10
+
+# TEST 2: Cập nhật thành đã thuộc
+$body = @{term="Where is the nearest station?";definition="Ga gần nhất ở đâu?";status="known";mistakes=0} | ConvertTo-Json
+Invoke-RestMethod -Uri "http://localhost:8002/api/sentences/1" -Method Put -Headers @{"Authorization"="Bearer YOUR_FIREBASE_TOKEN";"Content-Type"="application/json"} -Body $body | ConvertTo-Json -Depth 10
+
+
+========================================
+LÀM SAO LẤY FIREBASE TOKEN?
+========================================
+
+Cách 1: Từ Android App
+- Đăng nhập vào app
+- Check Logcat để tìm token
+- Token thường có format: eyJhbGciOiJSUzI1NiIsImtpZCI6...
+
+Cách 2: Từ Firebase Console
+- Vào Firebase Console > Authentication
+- Chọn user > Copy UID
+- Dùng Firebase Admin SDK để generate custom token
+
+Cách 3: Test với Postman
+- Import collection
+- Dùng Firebase Auth để lấy token
+
+
+========================================
+KIỂM TRA PATTERN_ID CÓ SẴN
+========================================
+
+curl -X GET "http://localhost:8002/api/sentence-patterns" -H "Authorization: Bearer YOUR_FIREBASE_TOKEN"
+
+
+========================================
+TẠO PATTERN MỚI (nếu chưa có)
+========================================
+
+curl -X POST "http://localhost:8002/api/sentence-patterns" -H "Authorization: Bearer YOUR_FIREBASE_TOKEN" -H "Content-Type: application/json" -d "{\"name\":\"Test Pattern\",\"term_language_code\":\"en\",\"definition_language_code\":\"vi\",\"is_public\":false}"
+
+
+========================================
+TẠO SENTENCE MỚI
+========================================
+
+curl -X POST "http://localhost:8002/api/sentences" -H "Authorization: Bearer YOUR_FIREBASE_TOKEN" -H "Content-Type: application/json" -d "{\"pattern_id\":1,\"term\":\"Where is the nearest station?\",\"definition\":\"Ga gần nhất ở đâu?\",\"status\":\"unknown\",\"mistakes\":0}"
+
+
+========================================
+EXPECTED RESPONSE (Success)
+========================================
+
+{
+  "success": true,
+  "message": "Sentences retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "term": "Where is the nearest station?",
+      "definition": "Ga gần nhất ở đâu?",
+      "status": "unknown",
+      "number_of_mistakes": 0,
+      "sentence_pattern_id": 1,
+      "created_at": "2024-01-15 10:30:00",
+      "last_opened": "2024-01-15 10:30:00",
+      "term_language_code": "en",
+      "definition_language_code": "vi"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "page_size": 20,
+    "total": 1,
+    "total_pages": 1
+  }
+}
+
+
+========================================
+COMMON ERRORS
+========================================
+
+401 Unauthorized → Token sai hoặc hết hạn
+404 Not Found → pattern_id không tồn tại
+403 Forbidden → Không có quyền truy cập pattern này
+400 Bad Request → Dữ liệu gửi lên không hợp lệ
