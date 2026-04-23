@@ -72,10 +72,12 @@ class SentencePatternRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "DELETE FROM SetencePattern WHERE Id = %s"
-                cursor.execute(sql, (sentence_pattern_id,))
+                # Delete child records first to avoid FK constraint violations
+                cursor.execute("DELETE FROM WritingGame WHERE SetencePatternId = %s", (sentence_pattern_id,))
+                cursor.execute("DELETE FROM Setence WHERE SetencePatternId = %s", (sentence_pattern_id,))
+                cursor.execute("DELETE FROM SetencePattern WHERE Id = %s", (sentence_pattern_id,))
             connection.commit()
-            return cursor.rowcount > 0
+            return True
         finally:
             connection.close()
 
