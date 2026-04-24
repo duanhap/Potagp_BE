@@ -1,7 +1,8 @@
 class FlashcardGame:
-    def __init__(self, id=None, mode=None, updated_at=None, word_set_id=None):
+    def __init__(self, id=None, mode=None, filter='all', updated_at=None, word_set_id=None):
         self.id = id
         self.mode = mode
+        self.filter = filter
         self.updated_at = updated_at
         self.word_set_id = word_set_id
 
@@ -11,12 +12,13 @@ class FlashcardGame:
         return FlashcardGame(
             id=data.get('Id'),
             mode=data.get('Mode'),
+            filter=data.get('Filter', 'all'),
             updated_at=str(data.get('UpdatedAt')) if data.get('UpdatedAt') else None,
             word_set_id=data.get('WordSetId')
         )
 
     def to_dict(self):
         return {
-            'id': self.id, 'mode': self.mode, 
+            'id': self.id, 'mode': self.mode, 'filter': self.filter,
             'updated_at': self.updated_at, 'word_set_id': self.word_set_id
         }

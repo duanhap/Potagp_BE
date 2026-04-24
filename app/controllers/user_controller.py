@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.services.user_service import UserService
 from app.utils.firebase_auth import token_required
+import cloudinary.uploader
 
 user_bp = Blueprint('user', __name__)
 user_service = UserService()
@@ -288,4 +289,68 @@ def get_user_rank():
         'success': True,
         'message': 'User rank retrieved successfully',
         'data': {'rank': rank}
+    }), 200
+
+
+@user_bp.route('/avatar', methods=['POST'])
+@token_required
+def upload_avatar():
+    """
+    Upload user avatar to Cloudinary and update profile
+    ---
+    tags:
+      - User
+    consumes:
+      - multipart/form-data
+    parameters:
+      - name: file
+        in: formData
+        type: file
+        required: true
+        description: Image file to upload
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: Firebase ID Token (Bearer <token>)
+    responses:
+      200:
+        description: Avatar uploaded and profile updated successfully
+      400:
+        description: No file provided or invalid file
+      404:
+        description: User not found
+      401:
+        description: Unauthorized
+    """
+    uid = request.user['uid']
+
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': 'No file provided'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'No file selected'}), 400
+
+    try:
+        result = cloudinary.uploader.upload(
+            file,
+            folder='avatars',
+            public_id=f'user_{uid}',
+            overwrite=True,
+            resource_type='image'
+        )
+        avatar_url = result.get('secure_url')
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Upload failed: {str(e)}'}), 500
+
+    user, error = user_service.update_user_profile(uid, {'avatar': avatar_url})
+    if error:
+        status_code = 404 if error == 'User not found' else 400
+        return jsonify({'success': False, 'message': error}), status_code
+
+    return jsonify({
+        'success': True,
+        'message': 'Avatar uploaded successfully',
+        'data': user.to_dict()
     }), 200

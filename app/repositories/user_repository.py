@@ -187,3 +187,16 @@ class UserRepository:
                 return rank
         finally:
             connection.close()
+
+    def add_experience(self, user_id, xp):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE `User` SET ExperiencePoints = ExperiencePoints + %s WHERE Id = %s",
+                    (xp, user_id)
+                )
+            connection.commit()
+            return cursor.rowcount > 0
+        finally:
+            connection.close()

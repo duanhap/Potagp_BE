@@ -9,7 +9,12 @@ class WordSetRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT * FROM WordSet WHERE Id = %s"
+                sql = """
+                    SELECT ws.*,
+                           (SELECT COUNT(*) FROM Word WHERE WordSetId = ws.Id) AS amount_of_words
+                    FROM WordSet ws
+                    WHERE ws.Id = %s
+                """
                 cursor.execute(sql, (word_set_id,))
                 result = cursor.fetchone()
                 return WordSet.from_dict(result) if result else None
@@ -20,7 +25,13 @@ class WordSetRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT * FROM WordSet WHERE UserId = %s ORDER BY CreatedAt DESC, UpdatedAt DESC"
+                sql = """
+                    SELECT ws.*,
+                           (SELECT COUNT(*) FROM Word WHERE WordSetId = ws.Id) AS amount_of_words
+                    FROM WordSet ws
+                    WHERE ws.UserId = %s
+                    ORDER BY ws.CreatedAt DESC, ws.UpdatedAt DESC
+                """
                 cursor.execute(sql, (user_id,))
                 results = cursor.fetchall()
                 return [WordSet.from_dict(row) for row in results]
@@ -32,9 +43,11 @@ class WordSetRepository:
         try:
             with connection.cursor() as cursor:
                 sql = """
-                    SELECT * FROM WordSet 
-                    WHERE UserId = %s 
-                    ORDER BY LastOpened DESC 
+                    SELECT ws.*,
+                           (SELECT COUNT(*) FROM Word WHERE WordSetId = ws.Id) AS amount_of_words
+                    FROM WordSet ws
+                    WHERE ws.UserId = %s
+                    ORDER BY ws.LastOpened DESC
                     LIMIT %s
                 """
                 cursor.execute(sql, (user_id, limit))
@@ -78,10 +91,21 @@ class WordSetRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "DELETE FROM WordSet WHERE Id = %s"
-                cursor.execute(sql, (word_set_id,))
+                cursor.execute(
+                    """
+                    DELETE fc FROM Flashcard fc
+                    INNER JOIN FlashcardGame fcg ON fc.FlashcardGameId = fcg.Id
+                    WHERE fcg.WordSetId = %s
+                    """,
+                    (word_set_id,),
+                )
+                cursor.execute("DELETE FROM Word WHERE WordSetId = %s", (word_set_id,))
+                cursor.execute("DELETE FROM FlashcardGame WHERE WordSetId = %s", (word_set_id,))
+                cursor.execute("DELETE FROM MatchGame WHERE WordSetId = %s", (word_set_id,))
+                cursor.execute("DELETE FROM WordSet WHERE Id = %s", (word_set_id,))
+                deleted = cursor.rowcount > 0
             connection.commit()
-            return cursor.rowcount > 0
+            return deleted
         finally:
             connection.close()
 

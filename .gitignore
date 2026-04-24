@@ -4,4 +4,6 @@ __pycache__
 firebase_single_line.txt
 .idea/
 .venv/
+.cursor/
+.idea/
 ReadUs.md

@@ -8,7 +8,7 @@ class SentenceRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT * FROM Setence WHERE Id = %s"
+                sql = "SELECT s.*, sp.TermLanguageCode, sp.DefinitionLanguageCode FROM Setence s JOIN SetencePattern sp ON s.SetencePatternId = sp.Id WHERE s.Id = %s"
                 cursor.execute(sql, (sentence_id,))
                 result = cursor.fetchone()
                 return Sentence.from_dict(result) if result else None
@@ -20,7 +20,7 @@ class SentenceRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT * FROM Setence WHERE SetencePatternId = %s ORDER BY CreatedAt DESC LIMIT %s OFFSET %s"
+                sql = "SELECT s.*, sp.TermLanguageCode, sp.DefinitionLanguageCode FROM Setence s JOIN SetencePattern sp ON s.SetencePatternId = sp.Id WHERE s.SetencePatternId = %s ORDER BY s.CreatedAt DESC LIMIT %s OFFSET %s"
                 cursor.execute(sql, (pattern_id, page_size, offset))
                 results = cursor.fetchall()
                 return [Sentence.from_dict(row) for row in results]
@@ -43,7 +43,7 @@ class SentenceRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT * FROM Setence WHERE SetencePatternId = %s AND Status = %s ORDER BY CreatedAt DESC LIMIT %s OFFSET %s"
+                sql = "SELECT s.*, sp.TermLanguageCode, sp.DefinitionLanguageCode FROM Setence s JOIN SetencePattern sp ON s.SetencePatternId = sp.Id WHERE s.SetencePatternId = %s AND s.Status = %s ORDER BY s.CreatedAt DESC LIMIT %s OFFSET %s"
                 cursor.execute(sql, (pattern_id, status, page_size, offset))
                 results = cursor.fetchall()
                 return [Sentence.from_dict(row) for row in results]
@@ -66,7 +66,7 @@ class SentenceRepository:
         try:
             with connection.cursor() as cursor:
                 sql = """
-                    SELECT s.* FROM Setence s
+                    SELECT s.*, sp.TermLanguageCode, sp.DefinitionLanguageCode FROM Setence s
                     JOIN SetencePattern sp ON s.SetencePatternId = sp.Id
                     WHERE sp.UserId = %s
                     ORDER BY s.CreatedAt DESC
@@ -82,9 +82,9 @@ class SentenceRepository:
         try:
             with connection.cursor() as cursor:
                 sql = "INSERT INTO Setence (Term, Definition, CreatedAt, Status, NumberOfMistakes, SetencePatternId, LastOpened) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-                now = datetime.now().date()
+                now = datetime.now()
                 status = status if status in ['unknown', 'known'] else 'unknown'
-                cursor.execute(sql, (term, definition, now, status, mistakes, pattern_id, None))
+                cursor.execute(sql, (term, definition, now, status, mistakes, pattern_id, now))
                 connection.commit()
                 return cursor.lastrowid
         finally:
@@ -94,7 +94,7 @@ class SentenceRepository:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                now = datetime.now().date()
+                now = datetime.now()
                 sql = "INSERT INTO Setence (Term, Definition, CreatedAt, Status, NumberOfMistakes, SetencePatternId, LastOpened) VALUES (%s, %s, %s, %s, %s, %s, %s)"
                 values = []
                 for sentence in sentences:
@@ -104,7 +104,7 @@ class SentenceRepository:
                     if status not in ['unknown', 'known']:
                         status = 'unknown'
                     mistakes = sentence.get('mistakes', 0)
-                    values.append((term, definition, now, status, mistakes, pattern_id, None))
+                    values.append((term, definition, now, status, mistakes, pattern_id, now))
 
                 if not values:
                     return []
@@ -144,13 +144,42 @@ class SentenceRepository:
         try:
             with connection.cursor() as cursor:
                 sql = """
-                    SELECT s.* FROM Setence s
+                    SELECT s.*, sp.TermLanguageCode, sp.DefinitionLanguageCode FROM Setence s
                     JOIN SetencePattern sp ON s.SetencePatternId = sp.Id
                     WHERE sp.UserId = %s
                     ORDER BY s.LastOpened DESC, s.CreatedAt DESC
                     LIMIT %s
                 """
                 cursor.execute(sql, (user_id, limit))
+                results = cursor.fetchall()
+                return [Sentence.from_dict(row) for row in results]
+        finally:
+            connection.close()
+
+    def increment_mistakes(self, sentence_id):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "UPDATE Setence SET NumberOfMistakes = COALESCE(NumberOfMistakes, 0) + 1 WHERE Id = %s"
+                cursor.execute(sql, (sentence_id,))
+                connection.commit()
+                return cursor.rowcount > 0
+        finally:
+            connection.close()
+
+    def get_random_by_pattern_id(self, pattern_id, limit=5):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = """
+                    SELECT s.*, sp.TermLanguageCode, sp.DefinitionLanguageCode
+                    FROM Setence s
+                    JOIN SetencePattern sp ON s.SetencePatternId = sp.Id
+                    WHERE s.SetencePatternId = %s
+                    ORDER BY RAND()
+                    LIMIT %s
+                """
+                cursor.execute(sql, (pattern_id, limit))
                 results = cursor.fetchall()
                 return [Sentence.from_dict(row) for row in results]
         finally:
